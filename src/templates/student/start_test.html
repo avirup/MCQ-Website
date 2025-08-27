@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Start Test</h1>
+<form method="post" action="/start-test">
+  <label>Subject</label>
+  <select name="subject_id">
+    <option value="1">Sample Subject</option>
+  </select>
+
+  <label>Mode</label>
+  <select name="mode">
+    <option value="display">Display</option>
+    <option value="interactive">Interactive</option>
+  </select>
+
+  <label>Number of Questions</label>
+  <input type="number" name="num_questions" min="1" value="5">
+
+  <label>Timer Mode</label>
+  <select name="timer_mode">
+    <option value="per-question">Per Question</option>
+    <option value="total-test">Total Test</option>
+  </select>
+
+  <label>Auto Advance</label>
+  <select name="auto_advance">
+    <option value="0">No</option>
+    <option value="1">Yes</option>
+  </select>
+
+  <button type="submit">Start</button>
+</form>
+{% endblock %}

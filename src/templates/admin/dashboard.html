@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+  <header style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+    <h1 style="margin:0;">Admin Dashboard</h1>
+    <form method="post" action="{{ url_for('auth.logout') }}">
+      <button type="submit">Logout</button>
+    </form>
+  </header>
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% if msgs %}
+      <ul>
+        {% for category, msg in msgs %}
+          <li><strong>{{ category|capitalize }}:</strong> {{ msg }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <nav style="margin-top:1rem;">
+    <ul>
+      <li><a href="{{ url_for('admin.subjects') }}">Manage Subjects</a></li>
+      <li><a href="{{ url_for('admin.questions') }}">Manage Questions</a></li>
+      <!-- Add more admin links as you build features -->
+    </ul>
+  </nav>
+
+  <section style="margin-top:1rem;">
+    <p>Welcome! Use the links above to manage content.</p>
+  </section>
+{% endblock %}

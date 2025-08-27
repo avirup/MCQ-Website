@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Question {{ q }} of {{ total }}</h2>
+<div id="question">
+  <p>This is a placeholder question. Replace with DB content.</p>
+  <ul>
+    <li>A) Option A</li>
+    <li>B) Option B</li>
+    <li>C) Option C</li>
+    <li>D) Option D</li>
+  </ul>
+</div>
+<div class="nav">
+  {% if q > 1 %}<a href="/test/{{ test_id }}?q={{ q-1 }}">Prev</a>{% endif %}
+  {% if q < total %}<a href="/test/{{ test_id }}?q={{ q+1 }}">Next</a>{% endif %}
+</div>
+
+<script src="/static/js/timer.js"></script>
+<script>
+  window.TEST_TIMER_CONFIG = {
+    mode: "{{ mode|default('display') }}",
+    auto_advance: false,
+    per_question_duration: 60,
+    total_duration: null,
+    test_end_time: null
+  };
+</script>
+{% endblock %}

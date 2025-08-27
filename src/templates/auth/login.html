@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Admin Login</h1>
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% if msgs %}
+      <ul>
+        {% for category, msg in msgs %}
+          <li><strong>{{ category|capitalize }}:</strong> {{ msg }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <form method="post" action="{{ url_for('auth.login', next=next) }}">
+    <label for="password">Password</label>
+    <input id="password" type="password" name="password" required>
+    <input type="hidden" name="next" value="{{ next }}">
+    <button type="submit">Login</button>
+  </form>
+{% endblock %}
