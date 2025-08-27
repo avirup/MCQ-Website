@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>{{ 'Edit Question' if edit_mode else 'New Question' }}</h1>
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% if msgs %}
+      <ul>
+        {% for category, msg in msgs %}
+          <li><strong>{{ category|capitalize }}:</strong> {{ msg }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <form method="post" enctype="multipart/form-data">
+    {{ form.csrf_token }}
+
+    <div>
+      <label>{{ form.subject_id.label }}</label><br>
+      {{ form.subject_id() }}
+    </div>
+
+    <div style="margin-top:0.5rem;">
+      <label>{{ form.question_text.label }}</label><br>
+      {{ form.question_text(rows=4, cols=80) }}
+      {% for e in form.question_text.errors %}<div style="color:#b00;">{{ e }}</div>{% endfor %}
+    </div>
+
+    <div style="margin-top:0.5rem;">
+      <label>{{ form.question_image.label }}</label><br>
+      {{ form.question_image() }}
+      {% if edit_mode and q.question_image %}
+        <div>Current: {{ q.question_image }}</div>
+      {% endif %}
+    </div>
+
+    <hr>
+    <div>
+      <label>{{ form.option_a.label }}</label><br>
+      {{ form.option_a(rows=2, cols=80) }}
+      {{ form.option_a_image() }}
+      {% if edit_mode and q.option_a_image %}<div>Current: {{ q.option_a_image }}</div>{% endif %}
+    </div>
+    <div>
+      <label>{{ form.option_b.label }}</label><br>
+      {{ form.option_b(rows=2, cols=80) }}
+      {{ form.option_b_image() }}
+      {% if edit_mode and q.option_b_image %}<div>Current: {{ q.option_b_image }}</div>{% endif %}
+    </div>
+    <div>
+      <label>{{ form.option_c.label }}</label><br>
+      {{ form.option_c(rows=2, cols=80) }}
+      {{ form.option_c_image() }}
+      {% if edit_mode and q.option_c_image %}<div>Current: {{ q.option_c_image }}</div>{% endif %}
+    </div>
+    <div>
+      <label>{{ form.option_d.label }}</label><br>
+      {{ form.option_d(rows=2, cols=80) }}
+      {{ form.option_d_image() }}
+      {% if edit_mode and q.option_d_image %}<div>Current: {{ q.option_d_image }}</div>{% endif %}
+    </div>
+
+    <div style="margin-top:0.5rem;">
+      <label>{{ form.correct_option.label }}</label><br>
+      {{ form.correct_option() }}
+    </div>
+
+    <div style="margin-top:1rem;">
+      {{ form.submit(class_="btn") }}
+      <a href="{{ url_for('admin.questions') }}">Cancel</a>
+    </div>
+  </form>
+{% endblock %}

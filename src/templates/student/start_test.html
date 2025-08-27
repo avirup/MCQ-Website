@@ -1,33 +1,69 @@
 {% extends "base.html" %}
 {% block content %}
-<h1>Start Test</h1>
-<form method="post" action="/start-test">
-  <label>Subject</label>
-  <select name="subject_id">
-    <option value="1">Sample Subject</option>
-  </select>
+  <h1>Start Test</h1>
 
-  <label>Mode</label>
-  <select name="mode">
-    <option value="display">Display</option>
-    <option value="interactive">Interactive</option>
-  </select>
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% if msgs %}
+      <ul>
+        {% for category, msg in msgs %}
+          <li><strong>{{ category|capitalize }}:</strong> {{ msg }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
 
-  <label>Number of Questions</label>
-  <input type="number" name="num_questions" min="1" value="5">
+  <form method="post" action="{{ url_for('student.start_test') }}">
+    {{ form.csrf_token }}
 
-  <label>Timer Mode</label>
-  <select name="timer_mode">
-    <option value="per-question">Per Question</option>
-    <option value="total-test">Total Test</option>
-  </select>
+    <div>
+      <label>{{ form.subject_id.label }}</label><br>
+      {{ form.subject_id() }}
+      {% for e in form.subject_id.errors %}<div style="color:#b00;">{{ e }}</div>{% endfor %}
+    </div>
 
-  <label>Auto Advance</label>
-  <select name="auto_advance">
-    <option value="0">No</option>
-    <option value="1">Yes</option>
-  </select>
+    <div style="margin-top:0.5rem;">
+      <label>{{ form.mode.label }}</label><br>
+      {{ form.mode() }}
+    </div>
 
-  <button type="submit">Start</button>
-</form>
+    <div style="margin-top:0.5rem;">
+      <label>{{ form.difficulty_filter.label }}</label><br>
+      {{ form.difficulty_filter() }}
+    </div>
+
+    <div style="margin-top:0.5rem;">
+      <label>{{ form.number_of_questions.label }}</label><br>
+      {{ form.number_of_questions(min=1) }}
+      {% for e in form.number_of_questions.errors %}<div style="color:#b00;">{{ e }}</div>{% endfor %}
+    </div>
+
+    <div style="margin-top:0.5rem;">
+      <label>{{ form.timer_mode.label }}</label><br>
+      {{ form.timer_mode() }}
+    </div>
+
+    <div style="margin-top:0.5rem;">
+      <label>{{ form.per_question_duration.label }}</label><br>
+      {{ form.per_question_duration(min=5) }}
+      <small>Used when Timer Mode is "Per Question".</small>
+      {% for e in form.per_question_duration.errors %}<div style="color:#b00;">{{ e }}</div>{% endfor %}
+    </div>
+
+    <div style="margin-top:0.5rem;">
+      <label>{{ form.total_test_duration.label }}</label><br>
+      {{ form.total_test_duration(min=30) }}
+      <small>Used when Timer Mode is "Total Test".</small>
+      {% for e in form.total_test_duration.errors %}<div style="color:#b00;">{{ e }}</div>{% endfor %}
+    </div>
+
+    <div style="margin-top:0.5rem;">
+      <label>{{ form.auto_advance.label }}</label>
+      {{ form.auto_advance() }}
+      <small>Works with per-question timer.</small>
+    </div>
+
+    <div style="margin-top:1rem;">
+      {{ form.submit() }}
+    </div>
+  </form>
 {% endblock %}

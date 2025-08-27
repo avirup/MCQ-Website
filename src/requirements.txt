@@ -5,3 +5,5 @@ flask_session
 python-dotenv
 bcrypt
 pymysql
+flask-wtf
+Pillow

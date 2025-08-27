@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block content %}
+  <style>
+    .wrap{max-width:900px;margin:auto;}
+    .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;margin:.75rem 0 1.25rem;}
+    .card{border:1px solid #ddd;border-radius:10px;padding:1rem;background:#fff;}
+    .card h3{margin:.2rem 0 .5rem 0;font-size:1rem;color:#444;}
+    .meter{font-size:2rem;font-weight:700;}
+    .ok{color:#166534;} .bad{color:#991b1b;} .warn{color:#92400e;}
+    .list{margin-top:.5rem;}
+    .qbtn{display:inline-block;margin:.25rem .3rem;padding:.3rem .5rem;border:1px solid #ddd;border-radius:6px;text-decoration:none;}
+    .qbtn.correct{background:#e6ffed;border-color:#9ae6b4;}
+    .qbtn.wrong{background:#ffeaea;border-color:#feb2b2;}
+    .qbtn.unanswered{background:#fff7ed;border-color:#fed7aa;}
+  </style>
+
+  <div class="wrap">
+    <h1>Test Summary</h1>
+    {% if test.mode.value == 'interactive' and test.test_uid %}
+  <div style="margin:.5rem 0 1rem 0; color:#555;">
+    Shareable review (read-only): <code>{{ test.test_uid }}</code><br>
+    <a href="{{ url_for('student.summary_by_uid', test_uid=test.test_uid) }}">Public Summary</a>
+    &nbsp;•&nbsp;
+    <a href="{{ url_for('student.review_by_uid', test_uid=test.test_uid, q=1) }}">Public Detailed Review</a>
+  </div>
+{% endif %}
+
+    <div style="color:#666;margin-bottom:.5rem;">
+      Mode: {{ test.mode.value|capitalize }}
+      {% if test.mode.value == 'interactive' and test.test_uid %}
+        • Share ID: <code>{{ test.test_uid }}</code>
+      {% endif %}
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <h3>Total Questions</h3>
+        <div class="meter">{{ totals.total }}</div>
+      </div>
+      <div class="card">
+        <h3>Correct</h3>
+        <div class="meter ok">{{ totals.correct }}</div>
+      </div>
+      <div class="card">
+        <h3>Incorrect</h3>
+        <div class="meter bad">{{ totals.incorrect }}</div>
+      </div>
+      <div class="card">
+        <h3>Unanswered</h3>
+        <div class="meter warn">{{ totals.unanswered }}</div>
+      </div>
+    </div>
+
+    <div class="list">
+      <h3>Jump to a Question</h3>
+      <div>
+        {# Build quick buttons 1..N with coloring #}
+        {% for i in range(1, test.total_questions + 1) %}
+          {% set qid = test.questions[i-1].question_id %}
+          {% set resp = (test.responses|selectattr('question_id','equalto',qid)|list|first) %}
+          {% if resp %}
+            {% set cls = 'correct' if resp.is_correct else 'wrong' %}
+          {% else %}
+            {% set cls = 'unanswered' %}
+          {% endif %}
+          <a class="qbtn {{ cls }}" href="{{ url_for('student.review', test_id=test.id, q=i) }}">Q{{ i }}</a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div style="margin-top:1rem;">
+      <a href="{{ url_for('student.review', test_id=test.id, q=1) }}">Start Detailed Review &rarr;</a>
+      {% if request.endpoint == 'student.summary_by_uid' %}
+        <!-- public view -->
+      {% else %}
+        <span> | </span>
+        <a href="{{ url_for('student.home') }}">Back to Start</a>
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}

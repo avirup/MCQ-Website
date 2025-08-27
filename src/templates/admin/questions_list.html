@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block content %}
+  <header style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+    <h1 style="margin:0;">Questions</h1>
+    <form method="post" action="{{ url_for('auth.logout') }}">
+      <button type="submit">Logout</button>
+    </form>
+  </header>
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% if msgs %}
+      <ul>
+        {% for category, msg in msgs %}
+          <li><strong>{{ category|capitalize }}:</strong> {{ msg }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <div style="margin:1rem 0;">
+    <form method="get" action="{{ url_for('admin.questions') }}">
+      <label>Filter by subject:</label>
+      <select name="subject_id" onchange="this.form.submit()">
+        <option value="">All</option>
+        {% for s in subjects %}
+          <option value="{{ s.id }}" {% if selected_subject_id==s.id %}selected{% endif %}>{{ s.name }}</option>
+        {% endfor %}
+      </select>
+      <a href="{{ url_for('admin.questions_new') }}" style="margin-left:1rem;">+ New Question</a>
+    </form>
+  </div>
+
+  <table border="1" cellpadding="6" cellspacing="0" width="100%">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Subject</th>
+        <th>Question</th>
+        <th>Correct</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for q in questions %}
+      <tr>
+        <td>{{ q.id }}</td>
+        <td>{{ q.subject.name if q.subject }}</td>
+        <td style="max-width:600px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+          {{ q.question_text }}
+        </td>
+        <td>{{ q.correct_option }}</td>
+        <td style="white-space:nowrap;">
+          <a href="{{ url_for('admin.questions_edit', qid=q.id) }}">Edit</a>
+          <form method="post" action="{{ url_for('admin.questions_delete', qid=q.id) }}" style="display:inline;" onsubmit="return confirm('Delete this question?');">
+            <button type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+    {% else %}
+      <tr><td colspan="5">No questions found.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

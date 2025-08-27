@@ -1,10 +1,11 @@
-from flask import Flask
+from flask import Flask, send_from_directory
 from config import Config
 from extensions import db, migrate, session
 from routes.auth import auth_bp, create_admin_command
 from routes.admin import admin_bp
 from routes.student import student_bp
 from routes.api import api_bp
+import os
 
 def create_app():
     app = Flask(__name__)
@@ -22,6 +23,15 @@ def create_app():
     app.register_blueprint(admin_bp, url_prefix="/admin")
     app.register_blueprint(student_bp)
     app.register_blueprint(api_bp, url_prefix="/api")
+
+    # ---- DEV ONLY: serve uploads from disk ----
+    # Files are stored in Config.UPLOAD_DIR (e.g., /.../uploads/questions)
+    # DB holds relative paths like "<subject_id>/<uuid>.png"
+    @app.route("/uploads/<path:relpath>")
+    def uploads(relpath):
+        base_dir = app.config["UPLOAD_DIR"]  # points to ".../uploads/questions"
+        return send_from_directory(base_dir, relpath, as_attachment=False)
+
 
 
     app.cli.add_command(create_admin_command)

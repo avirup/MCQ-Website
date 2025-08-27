@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+  <header style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">
+    <h1 style="margin:0;">Bulk Upload Questions</h1>
+    <form method="post" action="{{ url_for('auth.logout') }}">
+      <button type="submit">Logout</button>
+    </form>
+  </header>
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+    {% if msgs %}
+      <ul>
+        {% for category, msg in msgs %}
+          <li><strong>{{ category|capitalize }}:</strong> {{ msg }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <section style="margin-top:1rem;">
+    <p>
+      <a href="{{ url_for('admin.download_template') }}">Download CSV Template</a> |
+      <a href="{{ url_for('admin.download_template', sample=1) }}">Download CSV + Sample Row</a>
+    </p>
+    <p>Upload a CSV file with columns:</p>
+    <pre style="background:#f6f6f6;padding:8px;border:1px solid #ddd;overflow:auto;">
+subject, question_text, question_image, option_a, option_a_image, option_b, option_b_image, option_c, option_c_image, option_d, option_d_image, correct_option
+    </pre>
+    <p><strong>Notes:</strong> Subjects must already exist. Images are optional, but if specified in CSV, the <em>Images ZIP</em> must include files with matching names (flat, no subfolders). Images are stored with unique names to avoid collisions.</p>
+  </section>
+
+  <form method="post" enctype="multipart/form-data" style="margin-top:1rem;">
+    {{ form.csrf_token }}
+    <div>
+      <label>{{ form.csv_file.label }}</label><br>
+      {{ form.csv_file() }}
+    </div>
+    <div style="margin-top:0.5rem;">
+      <label>{{ form.images_zip.label }}</label><br>
+      {{ form.images_zip() }}
+    </div>
+    <div style="margin-top:0.75rem;">
+      {{ form.submit() }}
+      <a href="{{ url_for('admin.questions') }}" style="margin-left:1rem;">Back to Questions</a>
+    </div>
+  </form>
+
+  {% if summary %}
+    <hr>
+    <h2>Summary</h2>
+    <ul>
+      <li>Created: {{ summary.created }}</li>
+      <li>Failed: {{ summary.failed }}</li>
+    </ul>
+  {% endif %}
+
+  {% if errors and errors|length %}
+    <h3>Errors</h3>
+    <ol>
+      {% for e in errors %}
+        <li>{{ e }}</li>
+      {% endfor %}
+    </ol>
+  {% endif %}
+{% endblock %}

@@ -1,28 +1,143 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Question {{ q }} of {{ total }}</h2>
-<div id="question">
-  <p>This is a placeholder question. Replace with DB content.</p>
-  <ul>
-    <li>A) Option A</li>
-    <li>B) Option B</li>
-    <li>C) Option C</li>
-    <li>D) Option D</li>
-  </ul>
-</div>
-<div class="nav">
-  {% if q > 1 %}<a href="/test/{{ test_id }}?q={{ q-1 }}">Prev</a>{% endif %}
-  {% if q < total %}<a href="/test/{{ test_id }}?q={{ q+1 }}">Next</a>{% endif %}
-</div>
+  <style>
+    .qwrap{max-width:960px;margin:auto;}
+    .qhead{display:flex;justify-content:space-between;align-items:center;gap:1rem;}
+    .progress{font-size:.9rem;color:#666;}
+    .options{margin-top:1rem;}
+    .option{display:flex;align-items:flex-start;gap:.5rem;margin:.4rem 0;padding:.4rem;border:1px solid #ddd;border-radius:6px;}
+    .opt-label{min-width:2rem;font-weight:600;}
+    .nav{display:flex;justify-content:space-between;margin-top:1rem;}
+    .imgs{margin:.25rem 0;}
+    .imgs img{max-width:100%;height:auto;border:1px solid #eee;border-radius:6px;}
+    .timer{font-weight:600;}
+    .notice{color:#b00;}
+  </style>
 
-<script src="/static/js/timer.js"></script>
-<script>
-  window.TEST_TIMER_CONFIG = {
-    mode: "{{ mode|default('display') }}",
-    auto_advance: false,
-    per_question_duration: 60,
-    total_duration: null,
-    test_end_time: null
-  };
-</script>
+  <div class="qwrap">
+    <div class="qhead">
+      <div>
+        <h2 style="margin:.2rem 0;">Question {{ n }} of {{ test.total_questions }}</h2>
+        <div class="progress">Mode: {{ test.mode.value | capitalize }} • Timer: {{ test.timer_mode.value }}</div>
+      </div>
+      <div class="timer">
+        <span id="timer-label">Time</span>:
+        <span id="timer-value">--:--</span>
+      </div>
+    </div>
+
+    <hr>
+
+    <article>
+      <div class="question-text">
+        {{ q.question_text | safe }}
+      </div>
+      {% if q.question_image %}
+        <div class="imgs">
+          <img src="{{ url_for('uploads', relpath=q.question_image) }}" alt="Question image">
+        </div>
+      {% endif %}
+
+      <div class="options">
+        {# A/B/C/D list #}
+        {% set disabled = (test.mode.value == 'display') %}
+        {% for code, text, img in [
+          ('A', q.option_a, q.option_a_image),
+          ('B', q.option_b, q.option_b_image),
+          ('C', q.option_c, q.option_c_image),
+          ('D', q.option_d, q.option_d_image),
+        ] %}
+          <label class="option">
+            <span class="opt-label">{{ code }}</span>
+            {% if test.mode.value == 'interactive' %}
+              <input type="radio" name="selected_option" value="{{ code }}"
+                     {% if selected_option == code %}checked{% endif %}>
+            {% else %}
+              <input type="radio" disabled>
+            {% endif %}
+            <span class="opt-text">{{ text | safe }}</span>
+          </label>
+          {% if img %}
+            <div class="imgs" style="margin-left:3rem;">
+              <img src="{{ url_for('uploads', relpath=img) }}" alt="Option {{ code }} image">
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    </article>
+
+    <div class="nav">
+      <div>
+        {% if has_prev %}
+          <a href="{{ prev_url }}">&larr; Previous</a>
+        {% endif %}
+      </div>
+      <div>
+        {% if test.mode.value == 'interactive' %}
+          <button id="save-next-btn" {% if not has_next %}data-finish="1"{% endif %}>
+            {% if has_next %}Save &amp; Next &rarr;{% else %}Save &amp; Finish{% endif %}
+          </button>
+        {% else %}
+          {% if has_next %}
+            <a href="{{ next_url }}">Next &rarr;</a>
+          {% else %}
+            <form method="post" action="{{ url_for('student.finish_test', test_id=test.id) }}" style="display:inline;">
+              <button type="submit">Finish</button>
+            </form>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+
+    {% if test.mode.value == 'display' %}
+      <p class="notice">Display mode: options are disabled. The test advances per your timer settings.</p>
+    {% endif %}
+  </div>
+
+  <script>
+    // Expose timer config for static/js/timer.js
+    window.TEST_TIMER_CONFIG = {{ timer_config | tojson }};
+    // Minimal interactive save stub (you'll replace with real AJAX later)
+    (function () {
+      const cfg = window.TEST_TIMER_CONFIG || {};
+      const radioNodeList = document.querySelectorAll('input[name="selected_option"]');
+      function currentValue() {
+        for (const r of radioNodeList) if (r.checked) return r.value;
+        return null;
+      }
+      const btn = document.getElementById('save-next-btn');
+      if (btn) {
+        btn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          const val = currentValue();
+          if (!val) { alert("Please select an option."); return; }
+          if (!cfg.submit_api) {
+            // API not implemented yet; just navigate
+            if (btn.dataset.finish === "1" && cfg.finish_url) window.location = cfg.finish_url;
+            else if (cfg.next_url) window.location = cfg.next_url;
+            return;
+          }
+          try {
+            const res = await fetch(cfg.submit_api, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                question_id: {{ q.id }},
+                selected_option: val,
+                current_question_seq: {{ n }}
+              })
+            });
+            if (!res.ok) throw new Error('Save failed');
+            const data = await res.json();
+            if (btn.dataset.finish === "1" && cfg.finish_url) window.location = cfg.finish_url;
+            else if (cfg.next_url) window.location = cfg.next_url;
+          } catch (err) {
+            alert("Could not save your answer. Please try again.");
+          }
+        });
+      }
+    })();
+  </script>
+
+  <script src="{{ url_for('static', filename='js/timer.js') }}"></script>
 {% endblock %}
