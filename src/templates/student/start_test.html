@@ -16,10 +16,12 @@
     {{ form.csrf_token }}
 
     <div>
-      <label>{{ form.subject_id.label }}</label><br>
-      {{ form.subject_id() }}
+      <label for="subject_id">{{ form.subject_id.label }}</label><br>
+      {{ form.subject_id(id="subject_id") }}
+      <div id="available-note" class="qmeta" style="margin-top:.35rem;"></div>
       {% for e in form.subject_id.errors %}<div style="color:#b00;">{{ e }}</div>{% endfor %}
     </div>
+
 
     <div style="margin-top:0.5rem;">
       <label>{{ form.mode.label }}</label><br>
@@ -66,4 +68,36 @@
       {{ form.submit() }}
     </div>
   </form>
+
+  <script>
+  // subject_id -> total questions (provided by the route)
+    const AVAILABLE_MAP = {{ available_map | tojson }};
+
+    const subjSel  = document.getElementById('subject_id');
+    const noteEl   = document.getElementById('available-note');
+    const numInput = document.getElementById('number_of_questions'); // optional
+
+    function updateAvailable() {
+      const sid = String(subjSel.value || "");
+      const count = AVAILABLE_MAP[sid] ?? 0;
+
+     if (noteEl) {
+       const s = count === 1 ? "" : "s";
+        noteEl.textContent = `Available: ${count} question${s} in this subject`;
+      }
+
+    // Optional UX: hint and max on number field
+      if (numInput) {
+        numInput.max = Math.max(count, 1);
+        if (!numInput.value) {
+          numInput.placeholder = count > 0 ? `Max ${count}` : "No questions available";
+        }
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', updateAvailable);
+    subjSel.addEventListener('change', updateAvailable);
+  </script>
+
+
 {% endblock %}

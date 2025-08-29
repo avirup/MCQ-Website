@@ -1,7 +1,7 @@
 # routes/student.py
 from __future__ import annotations
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import random
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, abort
@@ -105,8 +105,21 @@ def _select_random_question_ids(subject_id: int, difficulty: str, n: int):
 @student_bp.route("/", methods=["GET"])
 def home():
     form = StartTestForm()
-    form.subject_id.choices = [(s.id, s.name) for s in Subject.query.order_by(Subject.name.asc()).all()]
-    return render_template("student/start_test.html", form=form)
+    subjects = Subject.query.order_by(Subject.name.asc()).all()
+    form.subject_id.choices = [(s.id, s.name) for s in subjects]
+    #form.subject_id.choices = [(s.id, s.name) for s in Subject.query.order_by(Subject.name.asc()).all()]
+
+    # Build a map: subject_id -> total questions (keys as strings for easy JS lookup)
+    available_map = {
+        str(s.id): Question.query.filter_by(subject_id=s.id).count()
+        for s in subjects
+    }
+
+    return render_template(
+        "student/start_test.html",
+        form=form,
+        available_map=available_map,   # <-- new
+    )
 
 @student_bp.route("/start-test", methods=["POST"])
 def start_test():
@@ -164,7 +177,7 @@ def start_test():
     total_test_duration   = total_secs if timer_mode == TimerModeEnum.total_test else None,
     auto_advance = auto_adv,
     expected_end_time = (
-        datetime.utcnow() + timedelta(seconds=total_secs)
+        datetime.now(timezone.utc) + timedelta(seconds=total_secs)
         if timer_mode == TimerModeEnum.total_test else None
         ),
     )
@@ -231,6 +244,13 @@ def test_page(test_id):
         if resp:
             selected_option = resp.selected_option
 
+    end_iso = None
+    if test.expected_end_time:
+        exp = test.expected_end_time
+        if exp.tzinfo is None:            # legacy rows created with naive UTC
+            exp = exp.replace(tzinfo=timezone.utc)
+        end_iso = exp.isoformat()          # e.g., "2025-08-29T10:15:00+00:00"
+    
     # Timer config payload for client JS
     timer_config = {
         "mode": test.mode.value,  # 'display' or 'interactive'
@@ -239,7 +259,7 @@ def test_page(test_id):
         "per_question_duration": test.per_question_duration or 0,
         "total_duration": test.total_test_duration or 0,
         # Use UTC ISO format; your timer.js can compare with server time or display
-        "test_end_time": test.expected_end_time.isoformat() if test.expected_end_time else None,
+        "test_end_time": end_iso,
         "question_index": n,
         "total_questions": test.total_questions,
         "next_url": url_for("student.test_page", test_id=test.id, q=n+1) if n < test.total_questions else None,
