@@ -30,6 +30,7 @@
   let navigated = false;
   function safeNavigate(url) {
     if (navigated || !url) return;
+    if (window.__saving_answer__) return;
     navigated = true;
     window.location.assign(url);
   }

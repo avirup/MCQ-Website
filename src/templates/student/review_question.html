@@ -1,119 +1,94 @@
 {% extends "base.html" %}
 {% block content %}
-  <style>
-    .qwrap{max-width:960px;margin:auto;}
-    .option{display:flex;align-items:flex-start;gap:.5rem;margin:.4rem 0;padding:.5rem;border:1px solid #ddd;border-radius:6px;}
-    .opt-label{min-width:2rem;font-weight:600;}
-    .opt-text{flex:1;}
-    .is-correct{background:#e6ffed;border-color:#9ae6b4;}
-    .is-wrong{background:#ffeaea;border-color:#feb2b2;}
-    .correct-badge{font-size:.85rem;color:#155724;margin-left:.5rem;}
-    .wrong-badge{font-size:.85rem;color:#721c24;margin-left:.5rem;}
-  </style>
+<div class="page">
+  {# Score banner on top #}
+  <section class="banner" style="margin-top:.5rem;">
+    <div><strong>Score:</strong> {{ totals.correct }}/{{ totals.total }}</div>
+    <div>Correct: <strong style="color:var(--ok);">{{ totals.correct }}</strong></div>
+    <div>Incorrect: <strong style="color:var(--bad);">{{ totals.incorrect }}</strong></div>
+    <div>Unanswered: <strong style="color:var(--warn);">{{ totals.unanswered }}</strong></div>
+    <div style="margin-left:auto;">
+      <a class="btn btn-outline" href="{{ url_for('student.summary', test_id=test.id) }}">Summary</a>
+    </div>
+  </section>
 
-  <div class="qwrap">
-    {# Score banner #}
-    {% set totals = totals if totals is defined else None %}
-    {% if not totals %}
-        {# lightweight server-side compute if not provided #}
-        {% set _ = namespace(correct=0, answered=0) %}
-        {# You can compute totals in the route and pass them instead for efficiency #}
+  <header style="display:flex;justify-content:space-between;align-items:center;gap:.75rem; margin-top:1rem;">
+    <div>
+      <h2 class="h-academic">Review — Question {{ n }} of {{ test.total_questions }}</h2>
+      <div class="qmeta">
+        Mode: {{ test.mode.value | capitalize }}
+        {% if test.mode.value == 'interactive' and test.test_uid %}
+          • Share ID: <code>{{ test.test_uid }}</code>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  <article style="margin-top:1rem;">
+    <div class="option" style="border-style:dashed; background:#fffefb;">
+      <span class="opt-text">{{ q.question_text | safe }}</span>
+    </div>
+
+    {% if q.question_image %}
+      <div class="imgs">
+        <img src="{{ url_for('uploads', relpath=q.question_image) }}" alt="Question image">
+      </div>
     {% endif %}
 
-    <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;padding:.6rem .8rem;border:1px solid #ddd;border-radius:8px;background:#f9f9f9;margin:0 0 1rem 0;">
-        <div><strong>Score:</strong>
-            {% if totals %}
-                {{ totals.correct }}/{{ totals.total }}
-            {% else %}
-                <!-- If not passed, just show placeholder -->
-                 — / {{ test.total_questions }}
-             {% endif %}
-          </div>
-        {% if totals %}
-             <div>Correct: <strong style="color:#166534;">{{ totals.correct }}</strong></div>
-             <div>Incorrect: <strong style="color:#991b1b;">{{ totals.incorrect }}</strong></div>
-             <div>Unanswered: <strong style="color:#92400e;">{{ totals.unanswered }}</strong></div>
-        {% endif %}
-        <div style="margin-left:auto;">
-             <a href="{{ url_for('student.summary', test_id=test.id) }}">Summary</a>
-        </div>
-    </div>
-
-    <h2>Review — Question {{ n }} of {{ test.total_questions }}</h2>
-    <div style="color:#666;margin-bottom:.5rem;">
-      Mode: {{ test.mode.value | capitalize }}
-      {% if test.mode.value == 'interactive' and test.test_uid %}
-        • Share ID: <code>{{ test.test_uid }}</code>
-      {% endif %}
-    </div>
-    <hr>
-
-    <article>
-      <div class="question-text">
-        {{ q.question_text | safe }}
-      </div>
-      {% if q.question_image %}
-        <div style="margin:.5rem 0;">
-          <img src="{{ url_for('uploads', relpath=q.question_image) }}" alt="Question image" style="max-width:100%;height:auto;">
-        </div>
-      {% endif %}
-
-      <div class="options" style="margin-top:.75rem;">
-        {% set selected = resp.selected_option if resp else None %}
-        {% for code, text, img in [
-          ('A', q.option_a, q.option_a_image),
-          ('B', q.option_b, q.option_b_image),
-          ('C', q.option_c, q.option_c_image),
-          ('D', q.option_d, q.option_d_image),
-        ] %}
-          {% set css = '' %}
-          {% set badge = '' %}
-          {% if test.mode.value == 'display' %}
-            {# Display mode: show correct only #}
-            {% if code == q.correct_option %}
-              {% set css = 'is-correct' %}
-              {% set badge = '<span class="correct-badge">Correct</span>' %}
-            {% endif %}
-          {% else %}
-            {# Interactive: show selected vs correct #}
-            {% if code == q.correct_option and selected == code %}
-              {% set css = 'is-correct' %}
-              {% set badge = '<span class="correct-badge">Your answer ✓</span>' %}
-            {% elif code == selected and selected != q.correct_option %}
-              {% set css = 'is-wrong' %}
-              {% set badge = '<span class="wrong-badge">Your answer ✗</span>' %}
-            {% elif code == q.correct_option %}
-              {% set css = 'is-correct' %}
-              {% set badge = '<span class="correct-badge">Correct answer</span>' %}
-            {% endif %}
+    <div class="options">
+      {% set selected = resp.selected_option if resp else None %}
+      {% for code, text, img in [
+        ('A', q.option_a, q.option_a_image),
+        ('B', q.option_b, q.option_b_image),
+        ('C', q.option_c, q.option_c_image),
+        ('D', q.option_d, q.option_d_image),
+      ] %}
+        {% set css = '' %}
+        {% set badge = '' %}
+        {% if test.mode.value == 'display' %}
+          {% if code == q.correct_option %}
+            {% set css = 'is-correct' %}
+            {% set badge = '<span style="margin-left:.5rem; color:var(--ok); font-weight:600;">Correct</span>' %}
           {% endif %}
-
-          <div class="option {{ css }}">
-            <span class="opt-label">{{ code }}</span>
-            <span class="opt-text">{{ text | safe }} {{ badge | safe }}</span>
-          </div>
-          {% if img %}
-            <div style="margin:.25rem 0 .6rem 3rem;">
-              <img src="{{ url_for('uploads', relpath=img) }}" alt="Option {{ code }} image" style="max-width:100%;height:auto;">
-            </div>
-          {% endif %}
-        {% endfor %}
-      </div>
-    </article>
-
-    <div class="nav" style="display:flex;justify-content:space-between;margin-top:1rem;">
-      <div>
-        {% if has_prev %}
-          <a href="{{ prev_url }}">&larr; Previous</a>
-        {% endif %}
-      </div>
-      <div>
-        {% if has_next %}
-          <a href="{{ next_url }}">Next &rarr;</a>
         {% else %}
-          <a href="{{ url_for('student.home') }}">Back to Start</a>
+          {% if code == q.correct_option and selected == code %}
+            {% set css = 'is-correct' %}
+            {% set badge = '<span style="margin-left:.5rem; color:var(--ok); font-weight:600;">Your answer ✓</span>' %}
+          {% elif code == selected and selected != q.correct_option %}
+            {% set css = 'is-wrong' %}
+            {% set badge = '<span style="margin-left:.5rem; color:var(--bad); font-weight:600;">Your answer ✗</span>' %}
+          {% elif code == q.correct_option %}
+            {% set css = 'is-correct' %}
+            {% set badge = '<span style="margin-left:.5rem; color:var(--ok); font-weight:600;">Correct answer</span>' %}
+          {% endif %}
         {% endif %}
-      </div>
+
+        <div class="option {{ css }}">
+          <span class="opt-label">{{ code }}</span>
+          <span class="opt-text">{{ text | safe }} {{ badge | safe }}</span>
+        </div>
+        {% if img %}
+          <div class="imgs" style="margin-left:3rem;">
+            <img src="{{ url_for('uploads', relpath=img) }}" alt="Option {{ code }} image">
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </article>
+
+  <div class="sticky-nav" style="margin-top:1rem;">
+    <div>
+      {% if has_prev %}
+        <a class="btn btn-outline" href="{{ prev_url }}">&larr; Previous</a>
+      {% endif %}
+    </div>
+    <div>
+      {% if has_next %}
+        <a class="btn btn-primary" href="{{ next_url }}">Next &rarr;</a>
+      {% else %}
+        <a class="btn btn-accent" href="{{ url_for('student.summary', test_id=test.id) }}">Back to Summary</a>
+      {% endif %}
     </div>
   </div>
+</div>
 {% endblock %}

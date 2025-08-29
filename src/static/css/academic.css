@@ -1,0 +1,90 @@
+:root{
+  --bg:#ffffff;
+  --text:#1a1a1a;
+  --muted:#6b7280;         /* slate-500 */
+  --line:#e5e7eb;          /* gray-200 */
+  --primary:#23395d;       /* academic navy */
+  --accent:#8b1e3f;        /* academic maroon */
+  --highlight:#c49a3a;     /* academic gold */
+  --ok:#166534;            /* green-700 */
+  --bad:#991b1b;           /* red-700 */
+  --warn:#92400e;          /* amber-800 */
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Inter, Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji", "Segoe UI Symbol";
+  line-height:1.5;
+}
+
+/* Container that scales from mobile to ultrawide */
+.page{
+  width: min(1200px, 100% - 2rem);
+  margin-inline: auto;
+}
+
+/* Headings styled with academic accent underline */
+.h-academic{
+  margin: .2rem 0 0;
+  padding-bottom: .25rem;
+  border-bottom: 3px solid var(--primary);
+  display:inline-block;
+}
+
+/* Cards / banners */
+.banner{
+  display:flex; gap:1rem; flex-wrap:wrap; align-items:center;
+  padding:.6rem .8rem; border:1px solid var(--line); border-radius:10px; background:#f9fafb;
+}
+
+/* Buttons */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:.5rem;
+  font-weight:600; text-decoration:none; cursor:pointer;
+  padding:.6rem 1rem; border-radius:10px; border:1px solid transparent;
+  transition:transform .02s ease, box-shadow .15s ease;
+}
+.btn:active{ transform:scale(.98) }
+.btn-primary{ background:var(--primary); color:#fff; }
+.btn-accent{ background:var(--accent); color:#fff; }
+.btn-outline{ background:#fff; color:var(--primary); border-color:var(--primary); }
+.btn-ghost{ background:transparent; color:var(--primary); border-color:transparent; }
+.btn-danger{ background:var(--bad); color:#fff; }
+
+/* Nav bar that sticks to bottom on mobile for easy taps */
+.sticky-nav{
+  position:sticky; bottom:0; background:#fff; border-top:1px solid var(--line);
+  padding:.75rem; display:flex; gap:.5rem; justify-content:space-between; align-items:center;
+}
+
+/* Question layout */
+.qwrap{ margin: 0 auto; }
+.qhead{ display:flex; justify-content:space-between; align-items:center; gap:1rem; }
+.qmeta{ font-size:.95rem; color:var(--muted); }
+.timer{ font-weight:700; color:var(--primary); }
+
+.options{ margin-top:1rem; display:grid; gap:.6rem; }
+.option{
+  display:flex; align-items:flex-start; gap:.75rem; padding:.65rem .75rem;
+  border:1px solid var(--line); border-radius:10px; background:#fff;
+}
+.opt-label{ min-width:2rem; font-weight:700; color:var(--primary); }
+.opt-text{ flex:1; }
+
+/* Images */
+.imgs{ margin:.35rem 0; }
+.imgs img{ max-width:100%; height:auto; border:1px solid var(--line); border-radius:10px; }
+
+/* Review coloring */
+.is-correct{ background:#f0fdf4; border-color:#bbf7d0; }
+.is-wrong{ background:#fef2f2; border-color:#fecaca; }
+
+/* Responsive widths: stretch sensibly on wide screens */
+@media (min-width: 1024px){
+  .page{ width:min(1400px, 100% - 4rem); }
+}
+
+/* Touch targets */
+button, .btn, input[type=radio]{ touch-action: manipulation; }

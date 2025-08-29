@@ -1,37 +1,23 @@
 {% extends "base.html" %}
 {% block content %}
-  <style>
-    .qwrap{max-width:960px;margin:auto;}
-    .qhead{display:flex;justify-content:space-between;align-items:center;gap:1rem;}
-    .progress{font-size:.9rem;color:#666;}
-    .options{margin-top:1rem;}
-    .option{display:flex;align-items:flex-start;gap:.5rem;margin:.4rem 0;padding:.4rem;border:1px solid #ddd;border-radius:6px;}
-    .opt-label{min-width:2rem;font-weight:600;}
-    .nav{display:flex;justify-content:space-between;margin-top:1rem;}
-    .imgs{margin:.25rem 0;}
-    .imgs img{max-width:100%;height:auto;border:1px solid #eee;border-radius:6px;}
-    .timer{font-weight:600;}
-    .notice{color:#b00;}
-  </style>
 
+<div class="page">
   <div class="qwrap">
     <div class="qhead">
       <div>
-        <h2 style="margin:.2rem 0;">Question {{ n }} of {{ test.total_questions }}</h2>
-        <div class="progress">Mode: {{ test.mode.value | capitalize }} • Timer: {{ test.timer_mode.value }}</div>
+        <h2 class="h-academic">Question {{ n }} of {{ test.total_questions }}</h2>
+        <div class="qmeta">Mode: {{ test.mode.value | capitalize }} • Timer: {{ test.timer_mode.value }}</div>
       </div>
       <div class="timer">
-        <span id="timer-label">Time</span>:
-        <span id="timer-value">--:--</span>
+        <span id="timer-label">Time</span>: <span id="timer-value">--:--</span>
       </div>
     </div>
 
-    <hr>
-
-    <article>
-      <div class="question-text">
-        {{ q.question_text | safe }}
+    <article style="margin-top:1rem;">
+      <div class="option" style="border-style:dashed; background:#fffefb;">
+        <span class="opt-text">{{ q.question_text | safe }}</span>
       </div>
+
       {% if q.question_image %}
         <div class="imgs">
           <img src="{{ url_for('uploads', relpath=q.question_image) }}" alt="Question image">
@@ -39,8 +25,6 @@
       {% endif %}
 
       <div class="options">
-        {# A/B/C/D list #}
-        {% set disabled = (test.mode.value == 'display') %}
         {% for code, text, img in [
           ('A', q.option_a, q.option_a_image),
           ('B', q.option_b, q.option_b_image),
@@ -51,9 +35,10 @@
             <span class="opt-label">{{ code }}</span>
             {% if test.mode.value == 'interactive' %}
               <input type="radio" name="selected_option" value="{{ code }}"
+                     style="margin-top:.25rem;"
                      {% if selected_option == code %}checked{% endif %}>
             {% else %}
-              <input type="radio" disabled>
+              <input type="radio" disabled style="margin-top:.25rem;">
             {% endif %}
             <span class="opt-text">{{ text | safe }}</span>
           </label>
@@ -66,23 +51,29 @@
       </div>
     </article>
 
-    <div class="nav">
+    <!-- Sticky, mobile-friendly navigation -->
+    <div class="sticky-nav" style="margin-top:1rem;">
       <div>
         {% if has_prev %}
-          <a href="{{ prev_url }}">&larr; Previous</a>
+          <a class="btn btn-outline" href="{{ prev_url }}">&larr; Previous</a>
         {% endif %}
       </div>
-      <div>
+
+      <div style="display:flex; gap:.5rem; flex-wrap:wrap; justify-content:flex-end;">
         {% if test.mode.value == 'interactive' %}
-          <button id="save-next-btn" {% if not has_next %}data-finish="1"{% endif %}>
-            {% if has_next %}Save &amp; Next &rarr;{% else %}Save &amp; Finish{% endif %}
-          </button>
+          {% if has_next %}
+            <button id="skip-next-btn" class="btn btn-outline" type="button" data-next="{{ next_url }}">Next (don’t save)</button>
+            <button id="save-next-btn" class="btn btn-primary" type="button">Save &amp; Next &rarr;</button>
+          {% else %}
+            <button id="skip-finish-btn" class="btn btn-outline" type="button" data-finish="{{ url_for('student.finish_test', test_id=test.id) }}">Finish (don’t save)</button>
+            <button id="save-next-btn" class="btn btn-accent" type="button" data-finish="1">Save &amp; Finish</button>
+          {% endif %}
         {% else %}
           {% if has_next %}
-            <a href="{{ next_url }}">Next &rarr;</a>
+            <a class="btn btn-primary" href="{{ next_url }}">Next &rarr;</a>
           {% else %}
             <form method="post" action="{{ url_for('student.finish_test', test_id=test.id) }}" style="display:inline;">
-              <button type="submit">Finish</button>
+              <button class="btn btn-accent" type="submit">Finish</button>
             </form>
           {% endif %}
         {% endif %}
@@ -90,54 +81,100 @@
     </div>
 
     {% if test.mode.value == 'display' %}
-      <p class="notice">Display mode: options are disabled. The test advances per your timer settings.</p>
+      <p style="color:var(--muted); margin-top:.5rem;">Display mode: options are disabled. The test advances as per your timer settings.</p>
     {% endif %}
   </div>
+</div>
 
-  <script>
-    // Expose timer config for static/js/timer.js
-    window.TEST_TIMER_CONFIG = {{ timer_config | tojson }};
-    // Minimal interactive save stub (you'll replace with real AJAX later)
-    (function () {
-      const cfg = window.TEST_TIMER_CONFIG || {};
-      const radioNodeList = document.querySelectorAll('input[name="selected_option"]');
-      function currentValue() {
-        for (const r of radioNodeList) if (r.checked) return r.value;
-        return null;
-      }
-      const btn = document.getElementById('save-next-btn');
-      if (btn) {
-        btn.addEventListener('click', async (e) => {
-          e.preventDefault();
-          const val = currentValue();
-          if (!val) { alert("Please select an option."); return; }
-          if (!cfg.submit_api) {
-            // API not implemented yet; just navigate
-            if (btn.dataset.finish === "1" && cfg.finish_url) window.location = cfg.finish_url;
-            else if (cfg.next_url) window.location = cfg.next_url;
-            return;
-          }
-          try {
-            const res = await fetch(cfg.submit_api, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                question_id: {{ q.id }},
-                selected_option: val,
-                current_question_seq: {{ n }}
-              })
-            });
-            if (!res.ok) throw new Error('Save failed');
-            const data = await res.json();
-            if (btn.dataset.finish === "1" && cfg.finish_url) window.location = cfg.finish_url;
-            else if (cfg.next_url) window.location = cfg.next_url;
-          } catch (err) {
-            alert("Could not save your answer. Please try again.");
-          }
-        });
-      }
-    })();
-  </script>
+<!-- Timer config for timer.js -->
+<script> window.TEST_TIMER_CONFIG = {{ timer_config | tojson }}; </script>
 
-  <script src="{{ url_for('static', filename='js/timer.js') }}"></script>
+<!-- Hardened Save/Skip handlers -->
+<script>
+(function () {
+  const cfg = window.TEST_TIMER_CONFIG || {};
+  // ----- Skip (don’t save) -----
+  const skipNext = document.getElementById('skip-next-btn');
+  const skipFinish = document.getElementById('skip-finish-btn');
+
+  function navigate(url){
+    if (!url) return;
+    // Tell timer not to auto-advance during manual nav
+    window.__saving_answer__ = true;  // reuse the same flag to pause timer nav
+    window.location.assign(url);
+  }
+  if (skipNext){
+    skipNext.addEventListener('click', (e)=>{
+      e.preventDefault();
+      navigate(skipNext.getAttribute('data-next'));
+    });
+  }
+  if (skipFinish){
+    skipFinish.addEventListener('click', (e)=>{
+      e.preventDefault();
+      navigate(skipFinish.getAttribute('data-finish'));
+    });
+  }
+
+  // ----- Save & Next (hardened) -----
+  const btn = document.getElementById('save-next-btn');
+  if (!btn) return;
+
+  const radios = document.querySelectorAll('input[name="selected_option"]');
+  const currentVal = () => { for (const r of radios) if (r.checked) return r.value; return null; };
+
+  let inFlight = false;
+
+  btn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    if (inFlight) return;
+
+    const val = currentVal();
+    if (!val) { alert("Please select an option."); return; }
+
+    inFlight = true;
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = "Saving...";
+    window.__saving_answer__ = true; // prevent timer auto-advance race
+
+    try {
+      const res = await fetch(cfg.submit_api, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question_id: {{ q.id }},
+          selected_option: val,
+          current_question_seq: {{ n }}
+        })
+      });
+
+      if (!res.ok) {
+        let msg = res.statusText || "Save failed";
+        try {
+          const data = await res.json();
+          if (data && data.error) msg = data.error;
+        } catch(_) {
+          try { const txt = await res.text(); if (txt) msg = txt; } catch(__) {}
+        }
+        alert(msg);
+        return;
+      }
+
+      if (btn.dataset.finish === "1" && cfg.finish_url) window.location = cfg.finish_url;
+      else if (cfg.next_url) window.location = cfg.next_url;
+
+    } catch (err) {
+      alert("Could not save your answer. Please check your connection and try again.");
+    } finally {
+      // If we didn't navigate due to error, restore the UI.
+      inFlight = false;
+      window.__saving_answer__ = false;
+      try { btn.disabled = false; btn.textContent = originalText; } catch(_) {}
+    }
+  });
+})();
+</script>
+
+<script src="{{ url_for('static', filename='js/timer.js') }}"></script>
 {% endblock %}
