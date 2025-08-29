@@ -1,73 +1,95 @@
-{% extends "base.html" %}
-{% block content %}
-  <h1>{{ 'Edit Question' if edit_mode else 'New Question' }}</h1>
+{% extends "admin/base_admin.html" %}
+{% block admin_content %}
 
-  {% with msgs = get_flashed_messages(with_categories=true) %}
-    {% if msgs %}
-      <ul>
-        {% for category, msg in msgs %}
-          <li><strong>{{ category|capitalize }}:</strong> {{ msg }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
+<h2 class="h-academic">{{ 'Edit Question' if edit_mode else 'New Question' }}</h2>
 
-  <form method="post" enctype="multipart/form-data">
-    {{ form.csrf_token }}
+<form method="post" enctype="multipart/form-data" style="margin-top:.75rem;">
+  {{ form.csrf_token }}
+
+  <!-- Core fields -->
+  <section class="card" style="display:grid; grid-template-columns:1fr; gap:.75rem;">
+    <div>
+      <label for="{{ form.subject_id.id }}"><strong>{{ form.subject_id.label.text }}</strong></label>
+      {{ form.subject_id(class_="btn btn-outline", style="width:100%; margin-top:.25rem;") }}
+      {% for e in form.subject_id.errors %}<div style="color:#b00; margin-top:.25rem;">{{ e }}</div>{% endfor %}
+    </div>
 
     <div>
-      <label>{{ form.subject_id.label }}</label><br>
-      {{ form.subject_id() }}
+      <label for="{{ form.question_text.id }}"><strong>{{ form.question_text.label.text }}</strong></label>
+      <div class="qmeta" style="margin:.25rem 0 0;">Supports LaTeX and images.</div>
+      {{ form.question_text(class_="input", style="width:100%; min-height:140px; margin-top:.25rem;") }}
+      {% for e in form.question_text.errors %}<div style="color:#b00; margin-top:.25rem;">{{ e }}</div>{% endfor %}
     </div>
 
-    <div style="margin-top:0.5rem;">
-      <label>{{ form.question_text.label }}</label><br>
-      {{ form.question_text(rows=4, cols=80) }}
-      {% for e in form.question_text.errors %}<div style="color:#b00;">{{ e }}</div>{% endfor %}
-    </div>
-
-    <div style="margin-top:0.5rem;">
-      <label>{{ form.question_image.label }}</label><br>
-      {{ form.question_image() }}
+    <div>
+      <label for="{{ form.question_image.id }}"><strong>{{ form.question_image.label.text }}</strong></label><br>
+      {{ form.question_image(class_="btn btn-outline", style="margin-top:.25rem;") }}
       {% if edit_mode and q.question_image %}
-        <div>Current: {{ q.question_image }}</div>
+        <div class="qmeta" style="margin-top:.35rem;">
+          Current: <a href="{{ url_for('uploads', relpath=q.question_image) }}" target="_blank">view image</a>
+        </div>
       {% endif %}
+      {% for e in form.question_image.errors %}<div style="color:#b00; margin-top:.25rem;">{{ e }}</div>{% endfor %}
+    </div>
+  </section>
+
+  <!-- Options A–D -->
+  <section class="card" style="margin-top:1rem;">
+    <h3 class="h-academic">Options</h3>
+
+    <div style="display:grid; grid-template-columns:1fr; gap:.75rem; margin-top:.5rem;">
+      {% for code, text_field, img_field, current_attr in [
+        ('A', form.option_a, form.option_a_image, 'option_a_image'),
+        ('B', form.option_b, form.option_b_image, 'option_b_image'),
+        ('C', form.option_c, form.option_c_image, 'option_c_image'),
+        ('D', form.option_d, form.option_d_image, 'option_d_image'),
+      ] %}
+        <div class="card" style="padding:.75rem;">
+          <label for="{{ text_field.id }}"><strong>Option {{ code }}</strong></label>
+          {{ text_field(class_="input", style="width:100%; min-height:90px; margin-top:.25rem;") }}
+          {% for e in text_field.errors %}<div style="color:#b00; margin-top:.25rem;">{{ e }}</div>{% endfor %}
+
+          <div style="margin-top:.5rem;">
+            <label for="{{ img_field.id }}" class="qmeta"><strong>Image (optional)</strong></label><br>
+            {{ img_field(class_="btn btn-outline", style="margin-top:.25rem;") }}
+            {% if edit_mode and getattr(q, current_attr) %}
+              <div class="qmeta" style="margin-top:.35rem;">
+                Current: <a href="{{ url_for('uploads', relpath=getattr(q, current_attr)) }}" target="_blank">view image</a>
+              </div>
+            {% endif %}
+            {% for e in img_field.errors %}<div style="color:#b00; margin-top:.25rem;">{{ e }}</div>{% endfor %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Correct + Difficulty -->
+  <section class="card" style="margin-top:1rem; display:grid; grid-template-columns:1fr; gap:.75rem;">
+    <div>
+      <label for="{{ form.correct_option.id }}"><strong>{{ form.correct_option.label.text }}</strong></label><br>
+      {{ form.correct_option(class_="btn btn-outline", style="margin-top:.25rem;") }}
+      {% for e in form.correct_option.errors %}<div style="color:#b00; margin-top:.25rem;">{{ e }}</div>{% endfor %}
     </div>
 
-    <hr>
+    {% if form.difficulty is defined %}
     <div>
-      <label>{{ form.option_a.label }}</label><br>
-      {{ form.option_a(rows=2, cols=80) }}
-      {{ form.option_a_image() }}
-      {% if edit_mode and q.option_a_image %}<div>Current: {{ q.option_a_image }}</div>{% endif %}
+      <label for="{{ form.difficulty.id }}"><strong>{{ form.difficulty.label.text }}</strong></label><br>
+      {{ form.difficulty(class_="btn btn-outline", style="margin-top:.25rem;") }}
+      {% for e in form.difficulty.errors %}<div style="color:#b00; margin-top:.25rem;">{{ e }}</div>{% endfor %}
     </div>
-    <div>
-      <label>{{ form.option_b.label }}</label><br>
-      {{ form.option_b(rows=2, cols=80) }}
-      {{ form.option_b_image() }}
-      {% if edit_mode and q.option_b_image %}<div>Current: {{ q.option_b_image }}</div>{% endif %}
-    </div>
-    <div>
-      <label>{{ form.option_c.label }}</label><br>
-      {{ form.option_c(rows=2, cols=80) }}
-      {{ form.option_c_image() }}
-      {% if edit_mode and q.option_c_image %}<div>Current: {{ q.option_c_image }}</div>{% endif %}
-    </div>
-    <div>
-      <label>{{ form.option_d.label }}</label><br>
-      {{ form.option_d(rows=2, cols=80) }}
-      {{ form.option_d_image() }}
-      {% if edit_mode and q.option_d_image %}<div>Current: {{ q.option_d_image }}</div>{% endif %}
-    </div>
+    {% endif %}
+  </section>
 
-    <div style="margin-top:0.5rem;">
-      <label>{{ form.correct_option.label }}</label><br>
-      {{ form.correct_option() }}
+  <!-- Actions -->
+  <div class="sticky-nav" style="margin-top:1rem;">
+    <div class="qmeta">Review your entries before saving.</div>
+    <div style="display:flex; gap:.5rem;">
+      {{ form.submit(class_="btn btn-primary") }}
+      <a class="btn btn-outline" href="{{ url_for('admin.questions') }}">Cancel</a>
     </div>
+  </div>
 
-    <div style="margin-top:1rem;">
-      {{ form.submit(class_="btn") }}
-      <a href="{{ url_for('admin.questions') }}">Cancel</a>
-    </div>
-  </form>
+</form>
+
 {% endblock %}

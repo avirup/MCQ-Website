@@ -13,6 +13,7 @@ class Config:
 
     # ---- Flask basics ----
     SECRET_KEY = os.getenv("SESSION_SECRET_KEY", "dev-secret-change-me")
+    WTF_CSRF_TIME_LIMIT = None
 
     # ---- SQLAlchemy / Database ----
     # IMPORTANT: We default to a non-root user so we never silently fall back to root.

@@ -1,65 +1,72 @@
-{% extends "base.html" %}
-{% block content %}
-  <header style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">
-    <h1 style="margin:0;">Bulk Upload Questions</h1>
-    <form method="post" action="{{ url_for('auth.logout') }}">
-      <button type="submit">Logout</button>
-    </form>
-  </header>
+{% extends "admin/base_admin.html" %}
+{% block admin_content %}
 
-  {% with msgs = get_flashed_messages(with_categories=true) %}
-    {% if msgs %}
-      <ul>
-        {% for category, msg in msgs %}
-          <li><strong>{{ category|capitalize }}:</strong> {{ msg }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
+<div class="toolbar">
+  <h2 class="h-academic" style="margin:0;">Bulk Upload</h2>
+  <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+    <a class="btn btn-outline" href="{{ url_for('admin.download_template') }}">CSV Template</a>
+    <a class="btn btn-outline" href="{{ url_for('admin.download_template', sample=1) }}">CSV + Sample Row</a>
+    <a class="btn btn-ghost" href="{{ url_for('admin.questions') }}">Back to Questions</a>
+  </div>
+</div>
 
-  <section style="margin-top:1rem;">
-    <p>
-      <a href="{{ url_for('admin.download_template') }}">Download CSV Template</a> |
-      <a href="{{ url_for('admin.download_template', sample=1) }}">Download CSV + Sample Row</a>
-    </p>
-    <p>Upload a CSV file with columns:</p>
-    <pre style="background:#f6f6f6;padding:8px;border:1px solid #ddd;overflow:auto;">
+<section class="card" style="display:grid; grid-template-columns:1fr; gap:.75rem;">
+  <div class="qmeta">
+    Upload a CSV and (optionally) an images ZIP. Filenames inside the ZIP must match CSV filenames (flat, no subfolders).
+    Images are saved with unique names to avoid collisions.
+  </div>
+
+  <pre style="margin:0; background:#f9fafb; border:1px solid var(--line); border-radius:8px; padding:.6rem .8rem; overflow:auto;">
 subject, question_text, question_image, option_a, option_a_image, option_b, option_b_image, option_c, option_c_image, option_d, option_d_image, correct_option
-    </pre>
-    <p><strong>Notes:</strong> Subjects must already exist. Images are optional, but if specified in CSV, the <em>Images ZIP</em> must include files with matching names (flat, no subfolders). Images are stored with unique names to avoid collisions.</p>
-  </section>
+  </pre>
 
-  <form method="post" enctype="multipart/form-data" style="margin-top:1rem;">
+  <form method="post" enctype="multipart/form-data" style="margin-top:.25rem;">
     {{ form.csrf_token }}
-    <div>
-      <label>{{ form.csv_file.label }}</label><br>
-      {{ form.csv_file() }}
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:.75rem;">
+      <div>
+        <label><strong>{{ form.csv_file.label.text }}</strong></label><br>
+        {{ form.csv_file(class_="btn btn-outline", style="margin-top:.25rem;") }}
+        {% for e in form.csv_file.errors %}<div style="color:#b00; margin-top:.25rem;">{{ e }}</div>{% endfor %}
+      </div>
+
+      <div>
+        <label><strong>{{ form.images_zip.label.text }}</strong></label><br>
+        {{ form.images_zip(class_="btn btn-outline", style="margin-top:.25rem;") }}
+        {% for e in form.images_zip.errors %}<div style="color:#b00; margin-top:.25rem;">{{ e }}</div>{% endfor %}
+      </div>
     </div>
-    <div style="margin-top:0.5rem;">
-      <label>{{ form.images_zip.label }}</label><br>
-      {{ form.images_zip() }}
-    </div>
-    <div style="margin-top:0.75rem;">
-      {{ form.submit() }}
-      <a href="{{ url_for('admin.questions') }}" style="margin-left:1rem;">Back to Questions</a>
+
+    <div class="sticky-nav" style="margin-top:.75rem;">
+      <div class="qmeta">Subjects must already exist. Images are optional.</div>
+      <div style="display:flex; gap:.5rem;">
+        {{ form.submit(class_="btn btn-primary") }}
+        <a class="btn btn-outline" href="{{ url_for('admin.questions') }}">Cancel</a>
+      </div>
     </div>
   </form>
+</section>
 
-  {% if summary %}
-    <hr>
-    <h2>Summary</h2>
-    <ul>
-      <li>Created: {{ summary.created }}</li>
-      <li>Failed: {{ summary.failed }}</li>
-    </ul>
-  {% endif %}
+{% if summary %}
+  <section class="card" style="margin-top:1rem;">
+    <h3 class="h-academic">Summary</h3>
+    <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:.5rem;">
+      <div><strong>Created:</strong> {{ summary.created }}</div>
+      <div><strong>Failed:</strong> {{ summary.failed }}</div>
+      {% if summary.skipped is defined %}<div><strong>Skipped:</strong> {{ summary.skipped }}</div>{% endif %}
+    </div>
+  </section>
+{% endif %}
 
-  {% if errors and errors|length %}
-    <h3>Errors</h3>
-    <ol>
+{% if errors and errors|length %}
+  <section class="card" style="margin-top:1rem;">
+    <h3 class="h-academic">Errors</h3>
+    <ol style="margin-top:.5rem;">
       {% for e in errors %}
-        <li>{{ e }}</li>
+        <li class="qmeta">{{ e }}</li>
       {% endfor %}
     </ol>
-  {% endif %}
+  </section>
+{% endif %}
+
 {% endblock %}

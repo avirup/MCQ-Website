@@ -1,33 +1,62 @@
-{% extends "base.html" %}
-{% block content %}
-  <header style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">
-    <h1 style="margin:0;">Admin Dashboard</h1>
-    <form method="post" action="{{ url_for('auth.logout') }}">
-      <button type="submit">Logout</button>
-    </form>
-  </header>
+{% extends "admin/base_admin.html" %}
+{% block admin_content %}
 
-  {% with msgs = get_flashed_messages(with_categories=true) %}
-    {% if msgs %}
-      <ul>
-        {% for category, msg in msgs %}
-          <li><strong>{{ category|capitalize }}:</strong> {{ msg }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
-
-  <nav style="margin-top:1rem;">
-    <ul>
-      <li><a href="{{ url_for('admin.subjects') }}">Manage Subjects</a></li>
-      <li><a href="{{ url_for('admin.questions') }}">Manage Questions</a></li>
-      <li><a href="{{ url_for('admin.bulk_upload') }}" style="margin-left:1rem;">Bulk Upload</a></li>
-
-      <!-- Add more admin links as you build features -->
-    </ul>
-  </nav>
-
-  <section style="margin-top:1rem;">
-    <p>Welcome! Use the links above to manage content.</p>
+  <!-- KPI cards -->
+  <section style="margin-top:0;">
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:.75rem;">
+      <div class="banner" style="background:#fff;">
+        <div><strong>Subjects</strong></div>
+        <div class="meter" style="font-size:1.75rem;font-weight:700;">{{ subjects_count or 0 }}</div>
+      </div>
+      <div class="banner" style="background:#fff;">
+        <div><strong>Questions</strong></div>
+        <div class="meter" style="font-size:1.75rem;font-weight:700;">{{ questions_count or 0 }}</div>
+      </div>
+      <div class="banner" style="background:#fff;">
+        <div><strong>Images</strong></div>
+        <div class="meter" style="font-size:1.75rem;font-weight:700;">{{ images_count or 0 }}</div>
+      </div>
+      <div class="banner" style="background:#fff; align-items:center; justify-content:space-between;">
+        <div>
+          <div><strong>Actions</strong></div>
+          <div class="qmeta">Quick admin shortcuts</div>
+        </div>
+        <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
+          <a class="btn btn-primary" href="{{ url_for('admin.questions_new') }}">+ Add Question</a>
+          <a class="btn btn-outline" href="{{ url_for('admin.subjects') }}">+ Add Subject</a>
+        </div>
+      </div>
+    </div>
   </section>
+
+  <!-- Recent questions table (optional) -->
+  {% if recent_questions is defined %}
+  <section style="margin-top:1rem;">
+    <h2 class="h-academic" style="margin-bottom:.5rem;">Recent Questions</h2>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>ID</th><th>Subject</th><th>Snippet</th><th>Difficulty</th><th>Updated</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for q in recent_questions %}
+          <tr>
+            <td>{{ q.id }}</td>
+            <td>{{ q.subject.name }}</td>
+            <td>{{ (q.question_text|striptags)[:80] }}{% if (q.question_text|striptags)|length > 80 %}…{% endif %}</td>
+            <td><span class="badge">{{ (q.difficulty.value if q.difficulty is not none else 'unrated')|capitalize }}</span></td>
+            <td>{{ q.updated_at.strftime("%Y-%m-%d") if q.updated_at else "" }}</td>
+            <td style="text-align:right;">
+              <a class="btn btn-outline" href="{{ url_for('admin.questions_edit', qid=q.id) }}">Edit</a>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="6" class="qmeta">No recent questions.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  {% endif %}
+
 {% endblock %}

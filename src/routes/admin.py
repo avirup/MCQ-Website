@@ -6,7 +6,7 @@ import os, uuid
 from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, Response, make_response
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
-from sqlalchemy import func
+from sqlalchemy import func, case
 from sqlalchemy.exc import IntegrityError
 from wtforms import StringField, TextAreaField, SelectField, FileField, SubmitField
 from wtforms.validators import DataRequired, Length, AnyOf, Optional as Opt
@@ -115,10 +115,37 @@ class QuestionForm(FlaskForm):
     submit = SubmitField("Save")
 
 
+
 @admin_bp.route("/")
 @admin_required
 def dashboard():
-    return render_template("admin/dashboard.html")
+    subjects_count = Subject.query.count()
+    questions_count = Question.query.count()
+    images_count = Question.query.filter(
+        (Question.question_image.isnot(None)) |
+        (Question.option_a_image.isnot(None)) |
+        (Question.option_b_image.isnot(None)) |
+        (Question.option_c_image.isnot(None)) |
+        (Question.option_d_image.isnot(None))
+    ).count()
+    recent_questions = (
+        Question.query
+        .order_by(
+            case((Question.updated_at == None, 1), else_=0),  # NULLs last
+            Question.updated_at.desc()
+        )
+        .limit(10)
+        .all()
+    )
+    return render_template(
+        "admin/dashboard.html",
+        subjects_count=subjects_count,
+        questions_count=questions_count,
+        images_count=images_count,
+        recent_questions=recent_questions
+    )
+
+
 
 # ---------- Subjects CRUD ----------
 

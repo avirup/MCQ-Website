@@ -1,103 +1,163 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>Start Test</h1>
+<div class="page">
+
+  <header style="margin:0 0 .75rem 0; display:flex; justify-content:space-between; align-items:end; gap:.75rem;">
+    <div>
+      <h1 class="h-academic" style="margin-bottom:.25rem;">Start a New Test</h1>
+      <p class="qmeta" style="margin:0;">Pick a subject and configure options.</p>
+    </div>
+    <a class="btn btn-outline" href="{{ url_for('student.home') }}">Reset</a>
+  </header>
 
   {% with msgs = get_flashed_messages(with_categories=true) %}
     {% if msgs %}
-      <ul>
-        {% for category, msg in msgs %}
-          <li><strong>{{ category|capitalize }}:</strong> {{ msg }}</li>
-        {% endfor %}
-      </ul>
+      <div class="banner" style="margin:.5rem 0;">
+        <ul style="margin:0; padding-left:1rem;">
+          {% for category, msg in msgs %}
+            <li><strong>{{ category|capitalize }}:</strong> {{ msg }}</li>
+          {% endfor %}
+        </ul>
+      </div>
     {% endif %}
   {% endwith %}
 
   <form method="post" action="{{ url_for('student.start_test') }}">
     {{ form.csrf_token }}
 
-    <div>
-      <label for="subject_id">{{ form.subject_id.label }}</label><br>
-      {{ form.subject_id(id="subject_id") }}
-      <div id="available-note" class="qmeta" style="margin-top:.35rem;"></div>
-      {% for e in form.subject_id.errors %}<div style="color:#b00;">{{ e }}</div>{% endfor %}
-    </div>
+    <!-- compact card -->
+    <section class="banner" style="gap:.75rem; padding:.9rem 1rem;">
+
+      <!-- grid: 2 cols on >=768px -->
+      <div style="width:100%; display:grid; grid-template-columns:1fr; gap:.75rem;">
+        <style>
+          @media (min-width: 768px){
+            .grid-2 { grid-template-columns: 1fr 1fr; }
+          }
+        </style>
+        <div class="grid-2" style="display:grid; grid-template-columns:1fr; gap:.75rem;">
+
+          <!-- Subject -->
+          <div>
+            <label for="subject_id" style="font-weight:600;">{{ form.subject_id.label.text }}</label>
+            {{ form.subject_id(id="subject_id", class_="btn btn-outline", style="width:100%; margin-top:.25rem; padding:.5rem .75rem;") }}
+            <div id="available-note" class="qmeta" style="margin-top:.25rem;"></div>
+            {% for e in form.subject_id.errors %}<div style="color:#b00;">{{ e }}</div>{% endfor %}
+          </div>
+
+          <!-- Mode -->
+          <div>
+            <label for="mode" style="font-weight:600;">{{ form.mode.label.text }}</label>
+            {{ form.mode(id="mode", class_="btn btn-outline", style="width:100%; margin-top:.25rem; padding:.5rem .75rem;") }}
+            {% for e in form.mode.errors %}<div style="color:#b00;">{{ e }}</div>{% endfor %}
+          </div>
+
+          <!-- Difficulty -->
+          <div>
+            <label for="difficulty_filter" style="font-weight:600;">{{ form.difficulty_filter.label.text }}</label>
+            {{ form.difficulty_filter(id="difficulty_filter", class_="btn btn-outline", style="width:100%; margin-top:.25rem; padding:.5rem .75rem;") }}
+            {% for e in form.difficulty_filter.errors %}<div style="color:#b00;">{{ e }}</div>{% endfor %}
+          </div>
+
+          <!-- Number of questions -->
+          <div>
+            <label for="number_of_questions" style="font-weight:600;">{{ form.number_of_questions.label.text }}</label>
+            {{ form.number_of_questions(id="number_of_questions", class_="btn btn-outline", min=1, style="width:100%; margin-top:.25rem; padding:.5rem .75rem;") }}
+            {% for e in form.number_of_questions.errors %}<div style="color:#b00;">{{ e }}</div>{% endfor %}
+          </div>
+
+          <!-- Timer mode -->
+          <div>
+            <label for="timer_mode" style="font-weight:600;">{{ form.timer_mode.label.text }}</label>
+            {{ form.timer_mode(id="timer_mode", class_="btn btn-outline", style="width:100%; margin-top:.25rem; padding:.5rem .75rem;") }}
+            {% for e in form.timer_mode.errors %}<div style="color:#b00;">{{ e }}</div>{% endfor %}
+          </div>
+
+          <!-- Per-question duration -->
+          <div id="perq_wrap">
+            <label for="per_question_duration" style="font-weight:600;">{{ form.per_question_duration.label.text }}</label>
+            {{ form.per_question_duration(id="per_question_duration", class_="btn btn-outline", min=5, style="width:100%; margin-top:.25rem; padding:.5rem .75rem;") }}
+            <div class="qmeta" style="margin-top:.25rem;">Used when Timer Mode is “Per Question”.</div>
+            {% for e in form.per_question_duration.errors %}<div style="color:#b00;">{{ e }}</div>{% endfor %}
+          </div>
+
+          <!-- Total test duration -->
+          <div id="tot_wrap" style="display:none;">
+            <label for="total_test_duration" style="font-weight:600;">{{ form.total_test_duration.label.text }}</label>
+            {{ form.total_test_duration(id="total_test_duration", class_="btn btn-outline", min=30, style="width:100%; margin-top:.25rem; padding:.5rem .75rem;") }}
+            <div class="qmeta" style="margin-top:.25rem;">Used when Timer Mode is “Total Test”.</div>
+            {% for e in form.total_test_duration.errors %}<div style="color:#b00;">{{ e }}</div>{% endfor %}
+          </div>
+
+          <!-- Auto advance -->
+          <div id="auto_wrap">
+            <label for="auto_advance" style="font-weight:600;">{{ form.auto_advance.label.text }}</label>
+            <div style="display:flex; align-items:center; gap:.5rem; margin-top:.35rem;">
+              {{ form.auto_advance(id="auto_advance") }}
+              <span class="qmeta">If per-question timer is on, moves automatically.</span>
+            </div>
+            {% for e in form.auto_advance.errors %}<div style="color:#b00;">{{ e }}</div>{% endfor %}
+          </div>
 
 
-    <div style="margin-top:0.5rem;">
-      <label>{{ form.mode.label }}</label><br>
-      {{ form.mode() }}
-    </div>
+        </div>
+      </div>
+    </section>
 
-    <div style="margin-top:0.5rem;">
-      <label>{{ form.difficulty_filter.label }}</label><br>
-      {{ form.difficulty_filter() }}
-    </div>
-
-    <div style="margin-top:0.5rem;">
-      <label>{{ form.number_of_questions.label }}</label><br>
-      {{ form.number_of_questions(min=1) }}
-      {% for e in form.number_of_questions.errors %}<div style="color:#b00;">{{ e }}</div>{% endfor %}
-    </div>
-
-    <div style="margin-top:0.5rem;">
-      <label>{{ form.timer_mode.label }}</label><br>
-      {{ form.timer_mode() }}
-    </div>
-
-    <div style="margin-top:0.5rem;">
-      <label>{{ form.per_question_duration.label }}</label><br>
-      {{ form.per_question_duration(min=5) }}
-      <small>Used when Timer Mode is "Per Question".</small>
-      {% for e in form.per_question_duration.errors %}<div style="color:#b00;">{{ e }}</div>{% endfor %}
-    </div>
-
-    <div style="margin-top:0.5rem;">
-      <label>{{ form.total_test_duration.label }}</label><br>
-      {{ form.total_test_duration(min=30) }}
-      <small>Used when Timer Mode is "Total Test".</small>
-      {% for e in form.total_test_duration.errors %}<div style="color:#b00;">{{ e }}</div>{% endfor %}
-    </div>
-
-    <div style="margin-top:0.5rem;">
-      <label>{{ form.auto_advance.label }}</label>
-      {{ form.auto_advance() }}
-      <small>Works with per-question timer.</small>
-    </div>
-
-    <div style="margin-top:1rem;">
-      {{ form.submit() }}
+    <div class="sticky-nav" style="margin-top:.75rem;">
+      <div class="qmeta">Ready? Double-check your choices.</div>
+      <div>
+        {{ form.submit(class_="btn btn-primary") }}
+      </div>
     </div>
   </form>
+</div>
 
-  <script>
-  // subject_id -> total questions (provided by the route)
-    const AVAILABLE_MAP = {{ available_map | tojson }};
+{# Optional: live available count + duration toggling (uses data passed by your route). #}
+{% if available_map is defined %}
+<script>
+  const AVAILABLE_MAP = {{ available_map | tojson }};
+  const subjSel  = document.getElementById('subject_id');
+  const noteEl   = document.getElementById('available-note');
+  const numInput = document.getElementById('number_of_questions');
 
-    const subjSel  = document.getElementById('subject_id');
-    const noteEl   = document.getElementById('available-note');
-    const numInput = document.getElementById('number_of_questions'); // optional
+  function updateAvailable() {
+    const sid = String(subjSel.value || "");
+    const count = AVAILABLE_MAP[sid] ?? 0;
+    if (noteEl) noteEl.textContent = `Available: ${count} question${count===1?'':'s'} in this subject`;
+    if (numInput) {
+      numInput.max = Math.max(count, 1);
+      if (!numInput.value) numInput.placeholder = count > 0 ? `Max ${count}` : "No questions available";
+    }
+  }
+  document.addEventListener('DOMContentLoaded', updateAvailable);
+  subjSel?.addEventListener('change', updateAvailable);
+</script>
+{% endif %}
 
-    function updateAvailable() {
-      const sid = String(subjSel.value || "");
-      const count = AVAILABLE_MAP[sid] ?? 0;
+<script>
+  (function () {
+    const sel = document.getElementById('timer_mode');
+    const perq = document.getElementById('perq_wrap');
+    const tot  = document.getElementById('tot_wrap');
+    const auto = document.getElementById('auto_wrap');
 
-     if (noteEl) {
-       const s = count === 1 ? "" : "s";
-        noteEl.textContent = `Available: ${count} question${s} in this subject`;
-      }
-
-    // Optional UX: hint and max on number field
-      if (numInput) {
-        numInput.max = Math.max(count, 1);
-        if (!numInput.value) {
-          numInput.placeholder = count > 0 ? `Max ${count}` : "No questions available";
-        }
+    function toggle() {
+      const v = sel.value;
+      if (v === 'per-question') {
+        perq.style.display = '';
+        auto.style.display = '';    // show auto advance only for per-question
+        tot.style.display = 'none';
+      } else {
+        perq.style.display = 'none';
+        auto.style.display = 'none'; // hide auto advance
+        tot.style.display = '';
       }
     }
 
-    document.addEventListener('DOMContentLoaded', updateAvailable);
-    subjSel.addEventListener('change', updateAvailable);
-  </script>
-
+    document.addEventListener('DOMContentLoaded', toggle);
+    sel?.addEventListener('change', toggle);
+  })();
+</script>
 
 {% endblock %}

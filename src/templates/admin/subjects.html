@@ -1,81 +1,80 @@
-{% extends "base.html" %}
-{% block content %}
-  <header style="display:flex;align-items:center;justify-content:space-between;gap:1rem;">
-    <h1 style="margin:0;">Subjects</h1>
-    <form method="post" action="{{ url_for('auth.logout') }}">
-      <button type="submit">Logout</button>
-    </form>
-  </header>
+{% extends "admin/base_admin.html" %}
+{% block admin_content %}
 
-  {% with msgs = get_flashed_messages(with_categories=true) %}
-    {% if msgs %}
-      <ul>
-        {% for category, msg in msgs %}
-          <li><strong>{{ category|capitalize }}:</strong> {{ msg }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
+<div class="admin-two-col">
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:2rem;align-items:start;margin-top:1rem;">
-    <!-- List -->
-    <section>
-      <h2>All Subjects</h2>
-      {% if subjects %}
-        <table border="1" cellpadding="6" cellspacing="0">
-          <thead>
-            <tr>
-              <th style="text-align:left;">Name</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-          {% for s in subjects %}
-            <tr>
-              <td>{{ s.name }}</td>
-              <td style="white-space:nowrap;">
-                <a href="{{ url_for('admin.subjects_edit', subject_id=s.id) }}">Edit</a>
-                <form method="post" action="{{ url_for('admin.subjects_delete', subject_id=s.id) }}" style="display:inline;" onsubmit="return confirm('Delete this subject?');">
-                  <button type="submit">Delete</button>
+  <!-- Left: All Subjects -->
+  <section class="card">
+    <h2 class="h-academic" style="margin-bottom:.5rem;">All Subjects</h2>
+
+    {% if subjects %}
+      <table class="table" style="margin-top:.25rem;">
+        <thead>
+          <tr>
+            <th style="text-align:left;">Name</th>
+            <th style="width:200px; text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for s in subjects %}
+          <tr>
+            <td>{{ s.name }}</td>
+            <td>
+              <div class="actions">
+                <a class="btn btn-outline" href="{{ url_for('admin.subjects_edit', subject_id=s.id) }}">Edit</a>
+                <form method="post"
+                      action="{{ url_for('admin.subjects_delete', subject_id=s.id) }}"
+                      onsubmit="return confirm('Delete this subject?');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button class="btn btn-danger" type="submit">Delete</button>
                 </form>
-              </td>
-            </tr>
-          {% endfor %}
-          </tbody>
-        </table>
-      {% else %}
-        <p>No subjects yet.</p>
-      {% endif %}
-    </section>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="qmeta" style="margin:0;">No subjects yet.</p>
+    {% endif %}
+  </section>
 
-    <!-- Form -->
-    <section>
-      {% if edit_mode %}
-        <h2>Edit Subject</h2>
-        <form method="post" action="{{ url_for('admin.subjects_update', subject_id=editing.id) }}">
-          <label for="name">Name</label><br>
-          <input id="name" name="name" type="text" maxlength="100" value="{{ form_data.name|default('', true) }}" required>
-          {% if errors and errors.name %}
-            <div style="color:#b00;">{{ errors.name }}</div>
-          {% endif %}
-          <div style="margin-top:0.5rem;">
-            <button type="submit">Save</button>
-            <a href="{{ url_for('admin.subjects') }}">Cancel</a>
-          </div>
-        </form>
-      {% else %}
-        <h2>Create Subject</h2>
-        <form method="post" action="{{ url_for('admin.subjects_create') }}">
-          <label for="name">Name</label><br>
-          <input id="name" name="name" type="text" maxlength="100" value="{{ form_data.name|default('', true) }}" required>
-          {% if errors and errors.name %}
-            <div style="color:#b00;">{{ errors.name }}</div>
-          {% endif %}
-          <div style="margin-top:0.5rem;">
-            <button type="submit">Create</button>
-          </div>
-        </form>
-      {% endif %}
-    </section>
-  </div>
+  <!-- Right: Create / Edit -->
+  <section class="card">
+    {% if edit_mode %}
+      <h2 class="h-academic" style="margin-bottom:.5rem;">Edit Subject</h2>
+      <form method="post" action="{{ url_for('admin.subjects_update', subject_id=editing.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label for="name"><strong>Name</strong></label>
+        <div class="form-row" style="margin-top:.25rem;">
+          <input id="name" name="name" type="text" maxlength="100"
+                 value="{{ form_data.name|default('', true) }}"
+                 class="input" required>
+          <button class="btn btn-primary" type="submit">Save</button>
+          <a class="btn btn-outline" href="{{ url_for('admin.subjects') }}">Cancel</a>
+        </div>
+        {% if errors and errors.name %}
+          <div style="color:#b00; margin-top:.35rem;">{{ errors.name }}</div>
+        {% endif %}
+      </form>
+    {% else %}
+      <h2 class="h-academic" style="margin-bottom:.5rem;">Create Subject</h2>
+      <form method="post" action="{{ url_for('admin.subjects_create') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <label for="name"><strong>Name</strong></label>
+        <div class="form-row" style="margin-top:.25rem;">
+          <input id="name" name="name" type="text" maxlength="100"
+                 value="{{ form_data.name|default('', true) }}"
+                 class="input" required>
+          <button class="btn btn-primary" type="submit">Create</button>
+        </div>
+        {% if errors and errors.name %}
+          <div style="color:#b00; margin-top:.35rem;">{{ errors.name }}</div>
+        {% endif %}
+      </form>
+    {% endif %}
+  </section>
+
+</div>
+
 {% endblock %}

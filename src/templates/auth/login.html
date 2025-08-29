@@ -1,21 +1,38 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>Admin Login</h1>
+<div class="page" style="max-width:480px;">
 
+  <h1 class="h-academic" style="margin-bottom:.75rem;">Admin Login</h1>
+
+  {# Flash messages (hide only "successfully logged in") #}
   {% with msgs = get_flashed_messages(with_categories=true) %}
     {% if msgs %}
-      <ul>
-        {% for category, msg in msgs %}
-          <li><strong>{{ category|capitalize }}:</strong> {{ msg }}</li>
-        {% endfor %}
-      </ul>
+      <div class="banner" style="margin:.5rem 0;">
+        <ul style="margin:0; padding-left:1rem;">
+          {% for category, msg in msgs %}
+            {% if 'successfully logged in' not in msg|lower %}
+              <li><strong>{{ category|capitalize }}:</strong> {{ msg }}</li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      </div>
     {% endif %}
   {% endwith %}
 
-  <form method="post" action="{{ url_for('auth.login', next=next) }}">
-    <label for="password">Password</label>
-    <input id="password" type="password" name="password" required>
-    <input type="hidden" name="next" value="{{ next }}">
-    <button type="submit">Login</button>
+  <form method="post" action="{{ url_for('auth.login', next=next) }}" class="card">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <label for="password"><strong>Password</strong></label>
+    <input id="password" type="password" name="password" class="input" style="margin-top:.35rem;" required>
+
+    {# Preserve "next" if provided #}
+    <input type="hidden" name="next" value="{{ next or '' }}">
+
+    <div style="display:flex; gap:.5rem; margin-top:.75rem;">
+      <button class="btn btn-primary" type="submit">Login</button>
+      <a class="btn btn-outline" href="{{ url_for('student.home') }}">Back</a>
+    </div>
   </form>
+
+</div>
 {% endblock %}

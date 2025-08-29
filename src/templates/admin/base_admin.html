@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page">
+
+  <!-- Topbar -->
+  <header style="display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin:.5rem 0 1rem 0;">
+    <div style="display:flex;align-items:center;gap:.75rem;">
+      <h1 class="h-academic" style="margin:0;">Admin</h1>
+      <span class="qmeta">Manage subjects, questions & uploads</span>
+    </div>
+    <nav style="display:flex;gap:.5rem;flex-wrap:wrap;">
+      <a class="btn btn-ghost" href="{{ url_for('admin.dashboard') }}">Dashboard</a>
+      <a class="btn btn-ghost" href="{{ url_for('admin.subjects') }}">Subjects</a>
+      <a class="btn btn-ghost" href="{{ url_for('admin.questions') }}">Questions</a>
+      <a class="btn btn-ghost" href="{{ url_for('admin.bulk_upload') }}">Bulk Upload</a>
+      <form method="post" action="{{ url_for('auth.logout') }}" style="display:inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-outline" type="submit">Logout</button>
+      </form>
+    </nav>
+  </header>
+
+  {% with msgs = get_flashed_messages(with_categories=true) %}
+  {% if msgs %}
+    <div class="banner" style="margin:.5rem 0;">
+      <ul style="margin:0; padding-left:1rem;">
+        {% for category, msg in msgs %}
+          {% if 'successfully logged in' not in msg|lower %}
+            <li><strong>{{ category|capitalize }}:</strong> {{ msg }}</li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+{% endwith %}
+
+
+  {% block admin_content %}{% endblock %}
+
+</div>
+{% endblock %}
