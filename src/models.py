@@ -1,8 +1,10 @@
 # models.py
 from datetime import datetime
-import enum
-from sqlalchemy import Index, UniqueConstraint, CheckConstraint, text, func
+import enum, os, shutil
+from pathlib import Path
+from sqlalchemy import Index, UniqueConstraint, CheckConstraint, text, func, event
 from extensions import db
+from flask import current_app
 
 
 # ---------- Enums ----------
@@ -272,3 +274,46 @@ class TestResponse(db.Model):
     def __repr__(self):
         return f"<TestResponse test_id={self.test_id} qid={self.question_id} correct={self.is_correct}>"
 
+# -----------------------
+# Cleanup hooks
+# -----------------------
+
+def _safe_remove(path: Path):
+    """Remove a file if it exists (ignore errors)."""
+    try:
+        if path.exists():
+            path.unlink()
+    except Exception as e:
+        print(f"[WARN] Could not delete file {path}: {e}")
+
+def _safe_rmtree(path: Path):
+    """Remove a directory tree if it exists (ignore errors)."""
+    try:
+        if path.exists() and path.is_dir():
+            shutil.rmtree(path)
+    except Exception as e:
+        print(f"[WARN] Could not delete folder {path}: {e}")
+
+
+@event.listens_for(Question, "after_delete")
+def delete_question_images(mapper, connection, target: "Question"):
+    """Delete all images associated with a question after it’s removed from DB."""
+    base_dir = Path(current_app.config["UPLOAD_DIR"]).resolve()
+
+    for relpath in [
+        target.question_image,
+        target.option_a_image,
+        target.option_b_image,
+        target.option_c_image,
+        target.option_d_image,
+    ]:
+        if relpath:
+            _safe_remove(base_dir / relpath)
+
+
+@event.listens_for(Subject, "after_delete")
+def delete_subject_folder(mapper, connection, target: "Subject"):
+    """Delete the subject’s entire folder (and images inside) when the subject is deleted."""
+    base_dir = Path(current_app.config["UPLOAD_DIR"]).resolve()
+    subj_folder = base_dir / str(target.id)
+    _safe_rmtree(subj_folder)
