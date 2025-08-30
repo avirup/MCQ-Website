@@ -129,7 +129,7 @@ class Test(db.Model):
     test_uid = db.Column(db.String(36), unique=True, nullable=True, index=True)
 
     subject_id = db.Column(
-        db.Integer, db.ForeignKey("subjects.id", ondelete="RESTRICT"), nullable=False
+        db.Integer, db.ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False
     )
 
     difficulty_filter = db.Column(

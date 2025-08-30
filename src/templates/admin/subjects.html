@@ -30,7 +30,7 @@
                   </a>
                   <form method="post"
                         action="{{ url_for('admin.subjects_delete', subject_id=s.id) }}"
-                        onsubmit="return confirm('Delete this subject?');">
+                        onsubmit="return confirm('Deleting this subject will delete all questions associated with this suject. All records of tests for this subject will also be deleted. Delete this subject?');">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit"
                             class="px-3 py-1.5 rounded-lg bg-red-600 text-white text-sm hover:bg-red-700 transition">

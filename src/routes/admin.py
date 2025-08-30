@@ -9,7 +9,7 @@ from werkzeug.datastructures import FileStorage
 from sqlalchemy import func, case
 from sqlalchemy.exc import IntegrityError
 from wtforms import StringField, TextAreaField, SelectField, FileField, SubmitField
-from wtforms.validators import DataRequired, Length, AnyOf, Optional as Opt
+from wtforms.validators import ValidationError, DataRequired, Length, AnyOf, Optional as Opt
 from flask_wtf import FlaskForm
 from PIL import Image
 
@@ -86,25 +86,43 @@ def _save_image(file_storage, subject_id: int) -> str:
     return rel_path
 
 # -----------------------
+# Validator
+# -----------------------
+
+def TextOrImageRequired(text_field_name: str, image_field_name: str):
+    """
+    Ensures that either the text field or the image field is provided.
+    """
+    def _validator(form, field):
+        text_val = field.data.strip() if field.data else ""
+        image_field = getattr(form, image_field_name)
+        has_image = image_field.data and getattr(image_field.data, "filename", "")
+
+        if not text_val and not has_image:
+            raise ValidationError(f"Either {text_field_name} text or image is required.")
+    return _validator
+
+
+# -----------------------
 # WTForms
 # -----------------------
 
 class QuestionForm(FlaskForm):
     subject_id = SelectField("Subject", coerce=int, validators=[DataRequired()])
-    question_text = TextAreaField("Question (LaTeX allowed)", validators=[DataRequired(), Length(max=2000)])
+    question_text = TextAreaField("Question (LaTeX allowed)", validators=[TextOrImageRequired("Question", "question_image"), Length(max=2000)])
     # Optional question image
     question_image = FileField("Question image (optional)", validators=[Opt()])
 
-    option_a = TextAreaField("Option A", validators=[DataRequired()])
+    option_a = TextAreaField("Option A", validators=[TextOrImageRequired("Option A", "option_a_image")])
     option_a_image = FileField("Option A image (optional)", validators=[Opt()])
 
-    option_b = TextAreaField("Option B", validators=[DataRequired()])
+    option_b = TextAreaField("Option B", validators=[TextOrImageRequired("Option B", "option_b_image")])
     option_b_image = FileField("Option B image (optional)", validators=[Opt()])
 
-    option_c = TextAreaField("Option C", validators=[DataRequired()])
+    option_c = TextAreaField("Option C", validators=[TextOrImageRequired("Option C", "option_c_image")])
     option_c_image = FileField("Option C image (optional)", validators=[Opt()])
 
-    option_d = TextAreaField("Option D", validators=[DataRequired()])
+    option_d = TextAreaField("Option D", validators=[TextOrImageRequired("Option D", "option_d_image")])
     option_d_image = FileField("Option D image (optional)", validators=[Opt()])
 
     correct_option = SelectField(
