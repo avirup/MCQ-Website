@@ -205,7 +205,7 @@ class TestQuestion(db.Model):
     )
     question_id = db.Column(
         db.Integer,
-        db.ForeignKey("questions.id", ondelete="RESTRICT"),
+        db.ForeignKey("questions.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
@@ -239,7 +239,7 @@ class TestResponse(db.Model):
         db.Integer, db.ForeignKey("tests.id", ondelete="CASCADE"), nullable=False, index=True
     )
     question_id = db.Column(
-        db.Integer, db.ForeignKey("questions.id", ondelete="RESTRICT"), nullable=False
+        db.Integer, db.ForeignKey("questions.id", ondelete="CASCADE"), nullable=False
     )
 
     selected_option = db.Column(db.CHAR(1), nullable=False)  # 'A'|'B'|'C'|'D'

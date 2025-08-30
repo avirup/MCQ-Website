@@ -82,6 +82,7 @@ def _save_image(file_storage, subject_id: int) -> str:
 
     # Return path relative to UPLOAD_DIR root for easier moves later
     rel_path = str(Path(str(subject_id)) / unique)
+    rel_path = rel_path.replace("\\", "/")
     return rel_path
 
 # -----------------------
@@ -114,6 +115,9 @@ class QuestionForm(FlaskForm):
 
     submit = SubmitField("Save")
 
+
+class DeleteForm(FlaskForm):
+    submit = SubmitField("Delete")
 
 
 @admin_bp.route("/")
@@ -285,7 +289,8 @@ def questions():
 
     questions = q.order_by(Question.id.desc()).limit(200).all()  # cap to 200 for now
     subjects = Subject.query.order_by(Subject.name.asc()).all()
-    return render_template("admin/questions_list.html", questions=questions, subjects=subjects, selected_subject_id=subject_id)
+    delete_form = DeleteForm()
+    return render_template("admin/questions_list.html", questions=questions, subjects=subjects, selected_subject_id=subject_id, delete_form=delete_form)
 
 # -----------------------
 # Questions: Create
@@ -446,6 +451,7 @@ def _save_image_from_bytes(data: bytes, original_name: str, subject_id: int) -> 
         f.write(data)
 
     rel_path = str(Path(str(subject_id)) / unique)
+    rel_path = rel_path.replace("\\", "/")
     return rel_path
 
 def _zip_members_map(zip_fs: Optional[FileStorage]) -> Dict[str, str]:

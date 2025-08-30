@@ -5,6 +5,7 @@ from routes.auth import auth_bp, create_admin_command
 from routes.admin import admin_bp
 from routes.student import student_bp
 from routes.api import api_bp
+from routes.uploads import uploads_bp
 import os
 
 def create_app():
@@ -24,14 +25,15 @@ def create_app():
     app.register_blueprint(admin_bp, url_prefix="/admin")
     app.register_blueprint(student_bp)
     app.register_blueprint(api_bp, url_prefix="/api")
+    app.register_blueprint(uploads_bp)
 
     # ---- DEV ONLY: serve uploads from disk ----
     # Files are stored in Config.UPLOAD_DIR (e.g., /.../uploads/questions)
     # DB holds relative paths like "<subject_id>/<uuid>.png"
-    @app.route("/uploads/<path:relpath>")
+    """ @app.route("/uploads/<path:relpath>")
     def uploads(relpath):
         base_dir = app.config["UPLOAD_DIR"]  # points to ".../uploads/questions"
-        return send_from_directory(base_dir, relpath, as_attachment=False)
+        return send_from_directory(base_dir, relpath, as_attachment=False) """
 
 
 
