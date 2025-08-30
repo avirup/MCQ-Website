@@ -1,61 +1,82 @@
 {% extends "admin/base_admin.html" %}
 {% block admin_content %}
 
-<div class="toolbar">
-  <div style="display:flex; gap:.5rem; align-items:center; flex-wrap:wrap;">
-    <h2 class="h-academic" style="margin:0;">Questions</h2>
-    <a class="btn btn-primary" href="{{ url_for('admin.questions_new') }}">+ New Question</a>
+<!-- Toolbar -->
+<div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-4">
+
+  <!-- Left: Title + New Question -->
+  <div class="flex items-center gap-3 flex-wrap">
+    <h2 class="text-lg font-semibold text-academic-navy border-b-4 border-academic-navy pb-1">
+      Questions
+    </h2>
+    <a href="{{ url_for('admin.questions_new') }}"
+       class="px-3 py-1.5 rounded-lg bg-academic-navy text-white text-sm hover:bg-academic-maroon transition">
+      + New Question
+    </a>
   </div>
 
-  <form method="get" action="{{ url_for('admin.questions') }}" class="search" style="align-items:center;">
-    <label for="subject_id" class="qmeta">Subject</label>
-    <select id="subject_id" name="subject_id" class="btn btn-outline" onchange="this.form.submit()">
+  <!-- Right: Filter -->
+  <form method="get" action="{{ url_for('admin.questions') }}" class="flex items-center gap-2 flex-wrap">
+    <label for="subject_id" class="text-sm text-gray-600">Subject</label>
+    <select id="subject_id" name="subject_id"
+            class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:ring-academic-navy focus:border-academic-navy"
+            onchange="this.form.submit()">
       <option value="">All</option>
       {% for s in subjects %}
         <option value="{{ s.id }}" {% if selected_subject_id==s.id %}selected{% endif %}>{{ s.name }}</option>
       {% endfor %}
     </select>
     {% if request.args %}
-      <a class="btn btn-ghost" href="{{ url_for('admin.questions') }}">Clear</a>
+      <a href="{{ url_for('admin.questions') }}"
+         class="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 text-sm hover:bg-gray-100 transition">
+        Clear
+      </a>
     {% endif %}
   </form>
 </div>
 
-<section class="card">
-  <table class="table">
-    <thead>
+<!-- Questions Table -->
+<section class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-x-auto">
+  <table class="min-w-full divide-y divide-gray-200 text-sm">
+    <thead class="bg-gray-50">
       <tr>
-        <th style="width:70px;">ID</th>
-        <th style="width:180px;">Subject</th>
-        <th>Question</th>
-        <th style="width:90px;">Correct</th>
-        <th style="width:180px; text-align:right;">Actions</th>
+        <th class="px-4 py-2 font-semibold text-gray-700 w-16">ID</th>
+        <th class="px-4 py-2 font-semibold text-gray-700 w-44">Subject</th>
+        <th class="px-4 py-2 font-semibold text-gray-700">Question</th>
+        <th class="px-4 py-2 font-semibold text-gray-700 w-20">Correct</th>
+        <th class="px-4 py-2 font-semibold text-gray-700 w-48 text-right">Actions</th>
       </tr>
     </thead>
-    <tbody>
+    <tbody class="divide-y divide-gray-100">
       {% for q in questions %}
-        <tr>
-          <td>{{ q.id }}</td>
-          <td>{{ q.subject.name if q.subject }}</td>
-          <td style="max-width: 720px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-2">{{ q.id }}</td>
+          <td class="px-4 py-2">{{ q.subject.name if q.subject }}</td>
+          <td class="px-4 py-2 truncate max-w-lg">
             {{ (q.question_text|striptags)|truncate(160, True, '…') }}
           </td>
-          <td>{{ q.correct_option }}</td>
-          <td>
-            <div class="actions">
-              <a class="btn btn-outline" href="{{ url_for('admin.questions_edit', qid=q.id) }}">Edit</a>
+          <td class="px-4 py-2">{{ q.correct_option }}</td>
+          <td class="px-4 py-2 text-right">
+            <div class="flex justify-end gap-2">
+              <a href="{{ url_for('admin.questions_edit', qid=q.id) }}"
+                 class="px-3 py-1.5 rounded-lg border border-academic-navy text-academic-navy text-sm hover:bg-academic-navy hover:text-white transition">
+                Edit
+              </a>
               <form method="post"
                     action="{{ url_for('admin.questions_delete', qid=q.id) }}"
                     onsubmit="return confirm('Delete this question?');">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button class="btn btn-danger" type="submit">Delete</button>
+                <button type="submit"
+                        class="px-3 py-1.5 rounded-lg bg-red-600 text-white text-sm hover:bg-red-700 transition">
+                  Delete
+                </button>
               </form>
             </div>
           </td>
         </tr>
       {% else %}
         <tr>
-          <td colspan="5" class="qmeta">No questions found.</td>
+          <td colspan="5" class="px-4 py-3 text-gray-500 text-sm">No questions found.</td>
         </tr>
       {% endfor %}
     </tbody>

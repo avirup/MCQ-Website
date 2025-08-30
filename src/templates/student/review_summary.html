@@ -1,55 +1,114 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="page">
-  <header style="display:flex;justify-content:space-between;align-items:center;gap:.75rem;">
-    <h1 class="h-academic">Test Summary</h1>
-    <div class="qmeta">
+<div class="max-w-5xl mx-auto space-y-6">
+
+  <!-- Header -->
+  <header class="flex justify-between items-center">
+    <h1 class="text-xl font-semibold text-academic-navy border-b-4 border-academic-navy pb-1">
+      Test Summary
+    </h1>
+    <div class="text-sm text-gray-600">
       Mode: {{ test.mode.value|capitalize }}
       {% if test.mode.value == 'interactive' and test.test_uid %}
-        • Share ID: <code>{{ test.test_uid }}</code>
+        • Share ID: <code class="bg-gray-100 px-1.5 py-0.5 rounded">{{ test.test_uid }}</code>
       {% endif %}
     </div>
   </header>
 
-  <section class="banner" style="margin-top:1rem;">
+  <!-- Totals banner -->
+  <section class="flex flex-wrap items-center gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 shadow-sm">
     <div><strong>Total:</strong> {{ totals.total }}</div>
-    <div>Correct: <strong style="color:var(--ok);">{{ totals.correct }}</strong></div>
-    <div>Incorrect: <strong style="color:var(--bad);">{{ totals.incorrect }}</strong></div>
-    <div>Unanswered: <strong style="color:var(--warn);">{{ totals.unanswered }}</strong></div>
-    <div style="margin-left:auto; display:flex; gap:.5rem;">
-      <a class="btn btn-primary" href="{{ url_for('student.review', test_id=test.id, q=1) }}">Start Detailed Review &rarr;</a>
-      <a class="btn btn-outline" href="{{ url_for('student.home') }}">Back to Start</a>
+    <div>Correct: <strong class="text-green-700">{{ totals.correct }}</strong></div>
+    <div>Incorrect: <strong class="text-red-700">{{ totals.incorrect }}</strong></div>
+    <div>Unanswered: <strong class="text-amber-700">{{ totals.unanswered }}</strong></div>
+    <div class="ml-auto flex gap-2">
+      <a class="px-4 py-2 rounded-lg bg-academic-navy text-white text-sm hover:bg-academic-maroon transition"
+         href="{{ url_for('student.review', test_id=test.id, q=1) }}">
+        Start Detailed Review &rarr;
+      </a>
+      <a class="px-4 py-2 rounded-lg border border-academic-navy text-academic-navy text-sm hover:bg-academic-navy hover:text-white transition"
+         href="{{ url_for('student.home') }}">
+        Back to Start
+      </a>
     </div>
   </section>
 
+  <!-- Public links -->
   {% if test.mode.value == 'interactive' and test.test_uid %}
-    <section style="margin-top:.75rem;">
-      <div class="banner" style="background:#fff;">
-        <div>Public (read-only) links:</div>
-        <a class="btn btn-outline" href="{{ url_for('student.summary_by_uid', test_uid=test.test_uid) }}">Public Summary</a>
-        <a class="btn btn-outline" href="{{ url_for('student.review_by_uid', test_uid=test.test_uid, q=1) }}">Public Detailed Review</a>
+    <section>
+      <div class="flex flex-wrap gap-3 items-center rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+        <div class="text-sm font-medium text-gray-700">Copy Public (read-only) links:</div>
+        <button type="button"
+                class="px-3 py-1.5 rounded-lg border border-academic-navy text-academic-navy text-sm hover:bg-academic-navy hover:text-white transition"
+                onclick="copyToClipboard('{{ url_for('student.summary_by_uid', test_uid=test.test_uid, _external=True) }}')">
+          Copy Summary Link
+        </button>
+        <button type="button"
+                class="px-3 py-1.5 rounded-lg border border-academic-navy text-academic-navy text-sm hover:bg-academic-navy hover:text-white transition"
+                onclick="copyToClipboard('{{ url_for('student.review_by_uid', test_uid=test.test_uid, q=1, _external=True) }}')">
+          Copy Detailed Review Link
+        </button>
       </div>
     </section>
   {% endif %}
 
-  <section style="margin-top:1rem;">
-    <h3 class="h-academic">Jump to a Question</h3>
-    <div style="display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.75rem;">
-      {# Build quick buttons 1..N with coloring #}
+  <!-- Jump to question buttons -->
+  <section>
+    <h3 class="text-lg font-semibold text-academic-navy border-b-2 border-academic-navy pb-1">
+      Jump to a Question
+    </h3>
+    <div class="flex flex-wrap gap-2 mt-3">
       {% for i in range(1, test.total_questions + 1) %}
         {% set qid = test.questions[i-1].question_id %}
         {% set resp = (test.responses|selectattr('question_id','equalto',qid)|list|first) %}
         {% if resp %}
-          {% set cls = 'correct' if resp.is_correct else 'wrong' %}
+          {% set cls = 'bg-green-50 border-green-600 text-green-700' if resp.is_correct else 'bg-red-50 border-red-600 text-red-700' %}
           {% set label = '✓' if resp.is_correct else '✗' %}
         {% else %}
-          {% set cls = 'unanswered' %}
+          {% set cls = 'bg-amber-50 border-amber-600 text-amber-700' %}
           {% set label = '…' %}
         {% endif %}
-        <a class="btn btn-outline qbtn {{ cls }}" style="min-width:3.25rem; justify-content:center;"
-           href="{{ url_for('student.review', test_id=test.id, q=i) }}">Q{{ i }} {{ label }}</a>
+        <a class="px-3 py-2 rounded-lg border text-sm font-medium {{ cls }} hover:opacity-80 transition text-center min-w-[3.5rem]"
+           href="{{ url_for('student.review', test_id=test.id, q=i) }}">
+          Q{{ i }} {{ label }}
+        </a>
       {% endfor %}
     </div>
   </section>
+
 </div>
+
+<!-- Toast Notification -->
+<div id="toast" class="fixed top-4 right-4 hidden px-4 py-2 rounded-lg shadow-lg text-white bg-green-600 text-sm font-medium z-50">
+  ✔ Link copied
+</div>
+
+<script>
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    showToast("✔ Link copied to clipboard");
+  }).catch(err => {
+    console.error("Clipboard error:", err);
+    showToast("⚠ Failed to copy link");
+  });
+}
+
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.classList.remove("hidden", "opacity-0");
+  toast.classList.add("opacity-100");
+
+  setTimeout(() => {
+    toast.classList.add("opacity-0");
+    setTimeout(() => toast.classList.add("hidden"), 300);
+  }, 2000); // show for 2s
+}
+</script>
+
+<style>
+#toast {
+  transition: opacity 0.3s ease-in-out;
+}
+</style>
 {% endblock %}

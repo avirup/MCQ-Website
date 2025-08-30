@@ -1,72 +1,96 @@
 {% extends "admin/base_admin.html" %}
 {% block admin_content %}
 
-<div class="toolbar">
-  <h2 class="h-academic" style="margin:0;">Bulk Upload</h2>
-  <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
-    <a class="btn btn-outline" href="{{ url_for('admin.download_template') }}">CSV Template</a>
-    <a class="btn btn-outline" href="{{ url_for('admin.download_template', sample=1) }}">CSV + Sample Row</a>
-    <a class="btn btn-ghost" href="{{ url_for('admin.questions') }}">Back to Questions</a>
+<!-- Toolbar -->
+<div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-6">
+  <h2 class="text-lg font-semibold text-academic-navy border-b-4 border-academic-navy pb-1">
+    Bulk Upload
+  </h2>
+  <div class="flex gap-2 flex-wrap">
+    <a href="{{ url_for('admin.download_template') }}"
+       class="px-3 py-1.5 rounded-lg border border-academic-navy text-academic-navy text-sm hover:bg-academic-navy hover:text-white transition">
+      CSV Template
+    </a>
+    <a href="{{ url_for('admin.download_template', sample=1) }}"
+       class="px-3 py-1.5 rounded-lg border border-academic-navy text-academic-navy text-sm hover:bg-academic-navy hover:text-white transition">
+      CSV + Sample Row
+    </a>
+    <a href="{{ url_for('admin.questions') }}"
+       class="px-3 py-1.5 rounded-lg text-sm border border-gray-300 text-gray-700 hover:bg-gray-100 transition">
+      Back to Questions
+    </a>
   </div>
 </div>
 
-<section class="card" style="display:grid; grid-template-columns:1fr; gap:.75rem;">
-  <div class="qmeta">
+<!-- Upload Form -->
+<section class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 space-y-6">
+  <p class="text-sm text-gray-600">
     Upload a CSV and (optionally) an images ZIP. Filenames inside the ZIP must match CSV filenames (flat, no subfolders).
     Images are saved with unique names to avoid collisions.
-  </div>
+  </p>
 
-  <pre style="margin:0; background:#f9fafb; border:1px solid var(--line); border-radius:8px; padding:.6rem .8rem; overflow:auto;">
+  <pre class="bg-gray-50 border border-gray-200 rounded-lg text-sm p-3 overflow-auto">
 subject, question_text, question_image, option_a, option_a_image, option_b, option_b_image, option_c, option_c_image, option_d, option_d_image, correct_option
   </pre>
 
-  <form method="post" enctype="multipart/form-data" style="margin-top:.25rem;">
+  <form method="post" enctype="multipart/form-data" class="space-y-6">
     {{ form.csrf_token }}
 
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:.75rem;">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
-        <label><strong>{{ form.csv_file.label.text }}</strong></label><br>
-        {{ form.csv_file(class_="btn btn-outline", style="margin-top:.25rem;") }}
-        {% for e in form.csv_file.errors %}<div style="color:#b00; margin-top:.25rem;">{{ e }}</div>{% endfor %}
+        <label class="block text-sm font-medium text-gray-700">{{ form.csv_file.label.text }}</label>
+        {{ form.csv_file(class_="mt-1 block w-full text-sm") }}
+        {% for e in form.csv_file.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ e }}</p>
+        {% endfor %}
       </div>
 
       <div>
-        <label><strong>{{ form.images_zip.label.text }}</strong></label><br>
-        {{ form.images_zip(class_="btn btn-outline", style="margin-top:.25rem;") }}
-        {% for e in form.images_zip.errors %}<div style="color:#b00; margin-top:.25rem;">{{ e }}</div>{% endfor %}
+        <label class="block text-sm font-medium text-gray-700">{{ form.images_zip.label.text }}</label>
+        {{ form.images_zip(class_="mt-1 block w-full text-sm") }}
+        {% for e in form.images_zip.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ e }}</p>
+        {% endfor %}
       </div>
     </div>
 
-    <div class="sticky-nav" style="margin-top:.75rem;">
-      <div class="qmeta">Subjects must already exist. Images are optional.</div>
-      <div style="display:flex; gap:.5rem;">
-        {{ form.submit(class_="btn btn-primary") }}
-        <a class="btn btn-outline" href="{{ url_for('admin.questions') }}">Cancel</a>
+    <div class="flex items-center justify-between pt-3 border-t border-gray-200">
+      <p class="text-sm text-gray-500">Subjects must already exist. Images are optional.</p>
+      <div class="flex gap-2">
+        {{ form.submit(class_="px-4 py-2 rounded-lg bg-academic-navy text-white text-sm hover:bg-academic-maroon transition") }}
+        <a href="{{ url_for('admin.questions') }}"
+           class="px-4 py-2 rounded-lg border border-academic-navy text-academic-navy text-sm hover:bg-academic-navy hover:text-white transition">
+          Cancel
+        </a>
       </div>
     </div>
   </form>
 </section>
 
+<!-- Summary -->
 {% if summary %}
-  <section class="card" style="margin-top:1rem;">
-    <h3 class="h-academic">Summary</h3>
-    <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:.5rem;">
-      <div><strong>Created:</strong> {{ summary.created }}</div>
-      <div><strong>Failed:</strong> {{ summary.failed }}</div>
-      {% if summary.skipped is defined %}<div><strong>Skipped:</strong> {{ summary.skipped }}</div>{% endif %}
-    </div>
-  </section>
+<section class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mt-6">
+  <h3 class="text-md font-semibold text-academic-navy border-b border-gray-200 pb-1">Summary</h3>
+  <div class="flex flex-wrap gap-6 mt-3 text-sm">
+    <div><strong>Created:</strong> {{ summary.created }}</div>
+    <div><strong>Failed:</strong> {{ summary.failed }}</div>
+    {% if summary.skipped is defined %}
+      <div><strong>Skipped:</strong> {{ summary.skipped }}</div>
+    {% endif %}
+  </div>
+</section>
 {% endif %}
 
+<!-- Errors -->
 {% if errors and errors|length %}
-  <section class="card" style="margin-top:1rem;">
-    <h3 class="h-academic">Errors</h3>
-    <ol style="margin-top:.5rem;">
-      {% for e in errors %}
-        <li class="qmeta">{{ e }}</li>
-      {% endfor %}
-    </ol>
-  </section>
+<section class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mt-6">
+  <h3 class="text-md font-semibold text-red-700 border-b border-gray-200 pb-1">Errors</h3>
+  <ol class="list-decimal list-inside mt-3 space-y-1 text-sm text-gray-700">
+    {% for e in errors %}
+      <li>{{ e }}</li>
+    {% endfor %}
+  </ol>
+</section>
 {% endif %}
 
 {% endblock %}

@@ -1,16 +1,18 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="page" style="max-width:480px;">
+<div class="max-w-md mx-auto bg-white border border-gray-200 rounded-xl shadow-md p-6">
 
-  <h1 class="h-academic" style="margin-bottom:.75rem;">Admin Login</h1>
+  <h1 class="text-2xl font-semibold text-academic-navy border-b-4 border-academic-navy pb-1 mb-4">
+    Admin Login
+  </h1>
 
-  {# Flash messages (hide only "successfully logged in") #}
+  {# Flash messages (hide only "Logged in successfully.") #}
   {% with msgs = get_flashed_messages(with_categories=true) %}
     {% if msgs %}
-      <div class="banner" style="margin:.5rem 0;">
-        <ul style="margin:0; padding-left:1rem;">
+      <div class="bg-red-50 border border-red-200 text-red-800 rounded-md p-3 mb-4 text-sm">
+        <ul class="list-disc list-inside space-y-1">
           {% for category, msg in msgs %}
-            {% if 'successfully logged in' not in msg|lower %}
+            {% if 'Logged in successfully.' not in msg|lower %}
               <li><strong>{{ category|capitalize }}:</strong> {{ msg }}</li>
             {% endif %}
           {% endfor %}
@@ -19,18 +21,29 @@
     {% endif %}
   {% endwith %}
 
-  <form method="post" action="{{ url_for('auth.login', next=next) }}" class="card">
+  <form method="post" action="{{ url_for('auth.login', next=next) }}" class="space-y-4">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-    <label for="password"><strong>Password</strong></label>
-    <input id="password" type="password" name="password" class="input" style="margin-top:.35rem;" required>
-
-    {# Preserve "next" if provided #}
     <input type="hidden" name="next" value="{{ next or '' }}">
 
-    <div style="display:flex; gap:.5rem; margin-top:.75rem;">
-      <button class="btn btn-primary" type="submit">Login</button>
-      <a class="btn btn-outline" href="{{ url_for('student.home') }}">Back</a>
+    <div>
+      <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+      <input id="password"
+             type="password"
+             name="password"
+             required
+             class="mt-1 block w-full rounded-lg border border-gray-300 shadow-sm
+                    focus:ring-academic-navy focus:border-academic-navy sm:text-sm px-3 py-2" />
+    </div>
+
+    <div class="flex items-center gap-3">
+      <button type="submit"
+              class="px-4 py-2 rounded-lg bg-academic-navy text-white hover:bg-academic-maroon transition">
+        Login
+      </button>
+      <a href="{{ url_for('student.home') }}"
+         class="px-4 py-2 rounded-lg border border-academic-navy text-academic-navy hover:bg-academic-navy hover:text-white transition">
+        Back
+      </a>
     </div>
   </form>
 

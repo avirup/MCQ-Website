@@ -1,41 +1,47 @@
 {% extends "base.html" %}
 {% block content %}
-<div class="page">
 
-  <!-- Topbar -->
-  <header style="display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin:.5rem 0 1rem 0;">
-    <div style="display:flex;align-items:center;gap:.75rem;">
-      <h1 class="h-academic" style="margin:0;">Admin</h1>
-      <span class="qmeta">Manage subjects, questions & uploads</span>
-    </div>
-    <nav style="display:flex;gap:.5rem;flex-wrap:wrap;">
-      <a class="btn btn-ghost" href="{{ url_for('admin.dashboard') }}">Dashboard</a>
-      <a class="btn btn-ghost" href="{{ url_for('admin.subjects') }}">Subjects</a>
-      <a class="btn btn-ghost" href="{{ url_for('admin.questions') }}">Questions</a>
-      <a class="btn btn-ghost" href="{{ url_for('admin.bulk_upload') }}">Bulk Upload</a>
-      <form method="post" action="{{ url_for('auth.logout') }}" style="display:inline;">
+<!-- Admin Header Bar -->
+<header class="bg-academic-navy text-white shadow mb-6 rounded-b-2xl">
+  <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+
+    <!-- Left: Page title -->
+    <h1 class="text-xl font-semibold">
+      Admin
+    </h1>
+
+    <!-- Right: Navigation -->
+    <nav class="flex gap-4 items-center">
+      <a href="{{ url_for('admin.dashboard') }}"
+         class="px-3 py-2 rounded-md text-sm font-medium hover:bg-academic-maroon transition {% if request.endpoint == 'admin.dashboard' %}bg-academic-maroon{% endif %}">
+        Dashboard
+      </a>
+      <a href="{{ url_for('admin.subjects') }}"
+         class="px-3 py-2 rounded-md text-sm font-medium hover:bg-academic-maroon transition {% if request.endpoint.startswith('admin.subjects') %}bg-academic-maroon{% endif %}">
+        Subjects
+      </a>
+      <a href="{{ url_for('admin.questions') }}"
+         class="px-3 py-2 rounded-md text-sm font-medium hover:bg-academic-maroon transition {% if request.endpoint.startswith('admin.questions') %}bg-academic-maroon{% endif %}">
+        Questions
+      </a>
+      <a href="{{ url_for('admin.bulk_upload') }}"
+         class="px-3 py-2 rounded-md text-sm font-medium hover:bg-academic-maroon transition {% if request.endpoint == 'admin.bulk_upload' %}bg-academic-maroon{% endif %}">
+        Bulk Upload
+      </a>
+      <form method="post" action="{{ url_for('auth.logout') }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button class="btn btn-outline" type="submit">Logout</button>
+        <button type="submit"
+                class="px-3 py-2 rounded-md text-sm font-medium hover:bg-red-700 transition bg-red-600">
+          Logout
+        </button>
       </form>
     </nav>
-  </header>
+  </div>
+</header>
 
-  {% with msgs = get_flashed_messages(with_categories=true) %}
-  {% if msgs %}
-    <div class="banner" style="margin:.5rem 0;">
-      <ul style="margin:0; padding-left:1rem;">
-        {% for category, msg in msgs %}
-          {% if 'successfully logged in' not in msg|lower %}
-            <li><strong>{{ category|capitalize }}:</strong> {{ msg }}</li>
-          {% endif %}
-        {% endfor %}
-      </ul>
-    </div>
-  {% endif %}
-{% endwith %}
-
-
+<!-- Page content -->
+<main class="max-w-6xl mx-auto px-4">
   {% block admin_content %}{% endblock %}
+</main>
 
-</div>
 {% endblock %}

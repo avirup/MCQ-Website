@@ -1,62 +1,96 @@
 {% extends "admin/base_admin.html" %}
 {% block admin_content %}
 
-  <!-- KPI cards -->
-  <section style="margin-top:0;">
-    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:.75rem;">
-      <div class="banner" style="background:#fff;">
-        <div><strong>Subjects</strong></div>
-        <div class="meter" style="font-size:1.75rem;font-weight:700;">{{ subjects_count or 0 }}</div>
+<!-- KPI cards -->
+<section>
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+    <!-- Subjects -->
+    <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-4">
+      <div class="text-sm font-medium text-gray-500">Subjects</div>
+      <div class="text-3xl font-bold text-academic-navy mt-1">{{ subjects_count or 0 }}</div>
+    </div>
+
+    <!-- Questions -->
+    <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-4">
+      <div class="text-sm font-medium text-gray-500">Questions</div>
+      <div class="text-3xl font-bold text-academic-navy mt-1">{{ questions_count or 0 }}</div>
+    </div>
+
+    <!-- Images -->
+    <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-4">
+      <div class="text-sm font-medium text-gray-500">Images</div>
+      <div class="text-3xl font-bold text-academic-navy mt-1">{{ images_count or 0 }}</div>
+    </div>
+
+    <!-- Actions -->
+    <div class="bg-white border border-gray-200 rounded-xl shadow-sm p-4 flex flex-col justify-between">
+      <div>
+        <div class="text-sm font-medium text-gray-500">Actions</div>
+        <div class="text-xs text-gray-400">Quick admin shortcuts</div>
       </div>
-      <div class="banner" style="background:#fff;">
-        <div><strong>Questions</strong></div>
-        <div class="meter" style="font-size:1.75rem;font-weight:700;">{{ questions_count or 0 }}</div>
-      </div>
-      <div class="banner" style="background:#fff;">
-        <div><strong>Images</strong></div>
-        <div class="meter" style="font-size:1.75rem;font-weight:700;">{{ images_count or 0 }}</div>
-      </div>
-      <div class="banner" style="background:#fff; align-items:center; justify-content:space-between;">
-        <div>
-          <div><strong>Actions</strong></div>
-          <div class="qmeta">Quick admin shortcuts</div>
-        </div>
-        <div style="display:flex; gap:.5rem; flex-wrap:wrap;">
-          <a class="btn btn-primary" href="{{ url_for('admin.questions_new') }}">+ Add Question</a>
-          <a class="btn btn-outline" href="{{ url_for('admin.subjects') }}">+ Add Subject</a>
-        </div>
+      <div class="flex flex-wrap gap-2 mt-2">
+        <a href="{{ url_for('admin.questions_new') }}"
+           class="px-3 py-1.5 rounded-lg bg-academic-navy text-white text-sm hover:bg-academic-maroon transition">
+          + Add Question
+        </a>
+        <a href="{{ url_for('admin.subjects') }}"
+           class="px-3 py-1.5 rounded-lg border border-academic-navy text-academic-navy text-sm hover:bg-academic-navy hover:text-white transition">
+          + Add Subject
+        </a>
       </div>
     </div>
-  </section>
 
-  <!-- Recent questions table (optional) -->
-  {% if recent_questions is defined %}
-  <section style="margin-top:1rem;">
-    <h2 class="h-academic" style="margin-bottom:.5rem;">Recent Questions</h2>
-    <table class="table">
-      <thead>
+  </div>
+</section>
+
+<!-- Recent Questions -->
+{% if recent_questions is defined %}
+<section class="mt-6">
+  <h2 class="text-lg font-semibold text-academic-navy border-b-4 border-academic-navy pb-1 mb-3">
+    Recent Questions
+  </h2>
+
+  <div class="overflow-x-auto bg-white border border-gray-200 rounded-xl shadow-sm">
+    <table class="min-w-full divide-y divide-gray-200 text-sm">
+      <thead class="bg-gray-50">
         <tr>
-          <th>ID</th><th>Subject</th><th>Snippet</th><th>Difficulty</th><th>Updated</th><th></th>
+          <th class="px-4 py-2 text-left font-semibold text-gray-700">ID</th>
+          <th class="px-4 py-2 text-left font-semibold text-gray-700">Subject</th>
+          <th class="px-4 py-2 text-left font-semibold text-gray-700">Snippet</th>
+          <th class="px-4 py-2 text-left font-semibold text-gray-700">Difficulty</th>
+          <th class="px-4 py-2 text-left font-semibold text-gray-700">Updated</th>
+          <th class="px-4 py-2"></th>
         </tr>
       </thead>
-      <tbody>
+      <tbody class="divide-y divide-gray-100">
         {% for q in recent_questions %}
-          <tr>
-            <td>{{ q.id }}</td>
-            <td>{{ q.subject.name }}</td>
-            <td>{{ (q.question_text|striptags)[:80] }}{% if (q.question_text|striptags)|length > 80 %}…{% endif %}</td>
-            <td><span class="badge">{{ (q.difficulty.value if q.difficulty is not none else 'unrated')|capitalize }}</span></td>
-            <td>{{ q.updated_at.strftime("%Y-%m-%d") if q.updated_at else "" }}</td>
-            <td style="text-align:right;">
-              <a class="btn btn-outline" href="{{ url_for('admin.questions_edit', qid=q.id) }}">Edit</a>
+          <tr class="hover:bg-gray-50">
+            <td class="px-4 py-2">{{ q.id }}</td>
+            <td class="px-4 py-2">{{ q.subject.name }}</td>
+            <td class="px-4 py-2 truncate max-w-xs">{{ (q.question_text|striptags)[:80] }}{% if (q.question_text|striptags)|length > 80 %}…{% endif %}</td>
+            <td class="px-4 py-2">
+              <span class="px-2 py-0.5 rounded-md border border-gray-300 text-xs">
+                {{ (q.difficulty.value if q.difficulty is not none else 'unrated')|capitalize }}
+              </span>
+            </td>
+            <td class="px-4 py-2 text-gray-500">{{ q.updated_at.strftime("%Y-%m-%d") if q.updated_at else "" }}</td>
+            <td class="px-4 py-2 text-right">
+              <a href="{{ url_for('admin.questions_edit', qid=q.id) }}"
+                 class="px-3 py-1.5 rounded-lg border border-academic-navy text-academic-navy text-sm hover:bg-academic-navy hover:text-white transition">
+                Edit
+              </a>
             </td>
           </tr>
         {% else %}
-          <tr><td colspan="6" class="qmeta">No recent questions.</td></tr>
+          <tr>
+            <td colspan="6" class="px-4 py-3 text-gray-500 text-sm">No recent questions.</td>
+          </tr>
         {% endfor %}
       </tbody>
     </table>
-  </section>
-  {% endif %}
+  </div>
+</section>
+{% endif %}
 
 {% endblock %}

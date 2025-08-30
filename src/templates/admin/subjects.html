@@ -1,76 +1,103 @@
 {% extends "admin/base_admin.html" %}
 {% block admin_content %}
 
-<div class="admin-two-col">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
   <!-- Left: All Subjects -->
-  <section class="card">
-    <h2 class="h-academic" style="margin-bottom:.5rem;">All Subjects</h2>
+  <section class="bg-white border border-gray-200 rounded-xl shadow-sm p-4">
+    <h2 class="text-lg font-semibold text-academic-navy border-b-4 border-academic-navy pb-1 mb-3">
+      All Subjects
+    </h2>
 
     {% if subjects %}
-      <table class="table" style="margin-top:.25rem;">
-        <thead>
-          <tr>
-            <th style="text-align:left;">Name</th>
-            <th style="width:200px; text-align:right;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-        {% for s in subjects %}
-          <tr>
-            <td>{{ s.name }}</td>
-            <td>
-              <div class="actions">
-                <a class="btn btn-outline" href="{{ url_for('admin.subjects_edit', subject_id=s.id) }}">Edit</a>
-                <form method="post"
-                      action="{{ url_for('admin.subjects_delete', subject_id=s.id) }}"
-                      onsubmit="return confirm('Delete this subject?');">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <button class="btn btn-danger" type="submit">Delete</button>
-                </form>
-              </div>
-            </td>
-          </tr>
-        {% endfor %}
-        </tbody>
-      </table>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 text-sm">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-2 text-left font-semibold text-gray-700">Name</th>
+              <th class="px-4 py-2 text-right font-semibold text-gray-700 w-48">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+          {% for s in subjects %}
+            <tr class="hover:bg-gray-50">
+              <td class="px-4 py-2">{{ s.name }}</td>
+              <td class="px-4 py-2">
+                <div class="flex gap-2 justify-end">
+                  <a href="{{ url_for('admin.subjects_edit', subject_id=s.id) }}"
+                     class="px-3 py-1.5 rounded-lg border border-academic-navy text-academic-navy text-sm hover:bg-academic-navy hover:text-white transition">
+                    Edit
+                  </a>
+                  <form method="post"
+                        action="{{ url_for('admin.subjects_delete', subject_id=s.id) }}"
+                        onsubmit="return confirm('Delete this subject?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit"
+                            class="px-3 py-1.5 rounded-lg bg-red-600 text-white text-sm hover:bg-red-700 transition">
+                      Delete
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
     {% else %}
-      <p class="qmeta" style="margin:0;">No subjects yet.</p>
+      <p class="text-sm text-gray-500">No subjects yet.</p>
     {% endif %}
   </section>
 
   <!-- Right: Create / Edit -->
-  <section class="card">
+  <section class="bg-white border border-gray-200 rounded-xl shadow-sm p-4">
     {% if edit_mode %}
-      <h2 class="h-academic" style="margin-bottom:.5rem;">Edit Subject</h2>
-      <form method="post" action="{{ url_for('admin.subjects_update', subject_id=editing.id) }}">
+      <h2 class="text-lg font-semibold text-academic-navy border-b-4 border-academic-navy pb-1 mb-3">
+        Edit Subject
+      </h2>
+      <form method="post" action="{{ url_for('admin.subjects_update', subject_id=editing.id) }}" class="space-y-4">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <label for="name"><strong>Name</strong></label>
-        <div class="form-row" style="margin-top:.25rem;">
-          <input id="name" name="name" type="text" maxlength="100"
-                 value="{{ form_data.name|default('', true) }}"
-                 class="input" required>
-          <button class="btn btn-primary" type="submit">Save</button>
-          <a class="btn btn-outline" href="{{ url_for('admin.subjects') }}">Cancel</a>
+        <div>
+          <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+          <div class="flex gap-2 mt-1">
+            <input id="name" name="name" type="text" maxlength="100"
+                   value="{{ form_data.name|default('', true) }}"
+                   class="flex-1 rounded-lg border border-gray-300 px-3 py-2 focus:ring-academic-navy focus:border-academic-navy sm:text-sm" required>
+            <button type="submit"
+                    class="px-4 py-2 rounded-lg bg-academic-navy text-white hover:bg-academic-maroon transition">
+              Save
+            </button>
+            <a href="{{ url_for('admin.subjects') }}"
+               class="px-4 py-2 rounded-lg border border-academic-navy text-academic-navy hover:bg-academic-navy hover:text-white transition">
+              Cancel
+            </a>
+          </div>
+          {% if errors and errors.name %}
+            <p class="text-red-600 text-sm mt-1">{{ errors.name }}</p>
+          {% endif %}
         </div>
-        {% if errors and errors.name %}
-          <div style="color:#b00; margin-top:.35rem;">{{ errors.name }}</div>
-        {% endif %}
       </form>
     {% else %}
-      <h2 class="h-academic" style="margin-bottom:.5rem;">Create Subject</h2>
-      <form method="post" action="{{ url_for('admin.subjects_create') }}">
+      <h2 class="text-lg font-semibold text-academic-navy border-b-4 border-academic-navy pb-1 mb-3">
+        Create Subject
+      </h2>
+      <form method="post" action="{{ url_for('admin.subjects_create') }}" class="space-y-4">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <label for="name"><strong>Name</strong></label>
-        <div class="form-row" style="margin-top:.25rem;">
-          <input id="name" name="name" type="text" maxlength="100"
-                 value="{{ form_data.name|default('', true) }}"
-                 class="input" required>
-          <button class="btn btn-primary" type="submit">Create</button>
+        <div>
+          <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+          <div class="flex gap-2 mt-1">
+            <input id="name" name="name" type="text" maxlength="100"
+                   value="{{ form_data.name|default('', true) }}"
+                   class="flex-1 rounded-lg border border-gray-300 px-3 py-2 focus:ring-academic-navy focus:border-academic-navy sm:text-sm" required>
+            <button type="submit"
+                    class="px-4 py-2 rounded-lg bg-academic-navy text-white hover:bg-academic-maroon transition">
+              Create
+            </button>
+          </div>
+          {% if errors and errors.name %}
+            <p class="text-red-600 text-sm mt-1">{{ errors.name }}</p>
+          {% endif %}
         </div>
-        {% if errors and errors.name %}
-          <div style="color:#b00; margin-top:.35rem;">{{ errors.name }}</div>
-        {% endif %}
       </form>
     {% endif %}
   </section>

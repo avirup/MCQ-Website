@@ -1,79 +1,113 @@
 {% extends "base.html" %}
 {% block content %}
 
-<div class="page">
-  <div class="qwrap">
-    <div class="qhead">
+<!-- Expose CSRF token for fetch -->
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
+<div class="max-w-4xl mx-auto">
+  <div class="space-y-6">
+
+    <!-- Header -->
+    <div class="flex justify-between items-start">
       <div>
-        <h2 class="h-academic">Question {{ n }} of {{ test.total_questions }}</h2>
-        <div class="qmeta">Mode: {{ test.mode.value | capitalize }} • Timer: {{ test.timer_mode.value }}</div>
+        <h2 class="text-xl font-semibold text-academic-navy border-b-4 border-academic-navy pb-1">
+          Question {{ n }} of {{ test.total_questions }}
+        </h2>
+        <p class="text-sm text-gray-500">
+          Mode: {{ test.mode.value | capitalize }} • Timer: {{ test.timer_mode.value }}
+        </p>
       </div>
-      <div class="timer">
-        <span id="timer-label">Time</span>: <span id="timer-value">--:--</span>
+      <div class="text-right">
+        <div class="text-sm font-semibold text-gray-600" id="timer-label">Time</div>
+        <div class="text-lg font-bold text-academic-navy" id="timer-value">--:--</div>
       </div>
     </div>
 
-    <article style="margin-top:1rem;">
-      <div class="option" style="border-style:dashed; background:#fffefb;">
-        <span class="opt-text">{{ q.question_text | safe }}</span>
+    <!-- Question -->
+    <article>
+      <div class="rounded-lg border-2 border-dashed border-gray-300 bg-white p-4">
+        <p class="text-gray-800">{{ q.question_text | safe }}</p>
       </div>
 
       {% if q.question_image %}
-        <div class="imgs">
-          <img src="{{ url_for('uploads', relpath=q.question_image) }}" alt="Question image">
+        <div class="mt-3">
+          <img src="{{ url_for('uploads', relpath=q.question_image) }}" alt="Question image"
+               class="max-w-full h-auto rounded-lg border border-gray-200 shadow-sm">
         </div>
       {% endif %}
 
-      <div class="options">
+      <!-- Options -->
+      <div class="mt-6 space-y-3">
         {% for code, text, img in [
           ('A', q.option_a, q.option_a_image),
           ('B', q.option_b, q.option_b_image),
           ('C', q.option_c, q.option_c_image),
           ('D', q.option_d, q.option_d_image),
         ] %}
-          <label class="option">
-            <span class="opt-label">{{ code }}</span>
+          <label class="flex items-start gap-3 border border-gray-200 rounded-lg bg-white p-3 hover:bg-gray-50">
+            <span class="font-semibold text-academic-navy w-6">{{ code }}</span>
             {% if test.mode.value == 'interactive' %}
               <input type="radio" name="selected_option" value="{{ code }}"
-                     style="margin-top:.25rem;"
+                     class="mt-1 text-academic-navy focus:ring-academic-navy"
                      {% if selected_option == code %}checked{% endif %}>
             {% else %}
-              <input type="radio" disabled style="margin-top:.25rem;">
+              <input type="radio" disabled class="mt-1 text-gray-400">
             {% endif %}
-            <span class="opt-text">{{ text | safe }}</span>
+            <span class="flex-1 text-gray-800">{{ text | safe }}</span>
           </label>
           {% if img %}
-            <div class="imgs" style="margin-left:3rem;">
-              <img src="{{ url_for('uploads', relpath=img) }}" alt="Option {{ code }} image">
+            <div class="ml-9">
+              <img src="{{ url_for('uploads', relpath=img) }}" alt="Option {{ code }} image"
+                   class="max-w-full h-auto rounded-lg border border-gray-200 shadow-sm">
             </div>
           {% endif %}
         {% endfor %}
       </div>
     </article>
 
-    <!-- Sticky, mobile-friendly navigation -->
-    <div class="sticky-nav" style="margin-top:1rem;">
+    <!-- Navigation -->
+    <div class="sticky bottom-0 bg-white border-t border-gray-200 py-3 flex justify-between items-center">
       <div>
         {% if has_prev %}
-          <a class="btn btn-outline" href="{{ prev_url }}">&larr; Previous</a>
+          <a href="{{ prev_url }}" class="px-4 py-2 rounded-lg border border-academic-navy text-academic-navy text-sm hover:bg-academic-navy hover:text-white transition">
+            &larr; Previous
+          </a>
         {% endif %}
       </div>
-
-      <div style="display:flex; gap:.5rem; flex-wrap:wrap; justify-content:flex-end;">
+      <div class="flex gap-2 flex-wrap">
         {% if test.mode.value == 'interactive' %}
           {% if has_next %}
-            <button id="skip-next-btn" class="btn btn-outline" type="button" data-next="{{ next_url }}">Next (don’t save)</button>
-            <button id="save-next-btn" class="btn btn-primary" type="button">Save &amp; Next &rarr;</button>
+            <button id="skip-next-btn" type="button" data-next="{{ next_url }}"
+                    class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 text-sm hover:bg-gray-100 transition">
+              Next (don’t save)
+            </button>
+            <button id="save-next-btn" type="button"
+                    class="px-4 py-2 rounded-lg bg-academic-navy text-white text-sm hover:bg-academic-maroon transition">
+              Save &amp; Next &rarr;
+            </button>
           {% else %}
-            <button id="skip-finish-btn" class="btn btn-outline" type="button" data-finish="{{ url_for('student.finish_test', test_id=test.id) }}">Finish (don’t save)</button>
-            <button id="save-next-btn" class="btn btn-accent" type="button" data-finish="1">Save &amp; Finish</button>
+            <button id="skip-finish-btn" type="button" data-finish="{{ url_for('student.finish_test', test_id=test.id) }}"
+                    class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 text-sm hover:bg-gray-100 transition">
+              Finish (don’t save)
+            </button>
+            <button id="save-next-btn" type="button" data-finish="1"
+                    class="px-4 py-2 rounded-lg bg-academic-maroon text-white text-sm hover:bg-academic-navy transition">
+              Save &amp; Finish
+            </button>
           {% endif %}
         {% else %}
           {% if has_next %}
-            <a class="btn btn-primary" href="{{ next_url }}">Next &rarr;</a>
+            <a href="{{ next_url }}"
+               class="px-4 py-2 rounded-lg bg-academic-navy text-white text-sm hover:bg-academic-maroon transition">
+              Next &rarr;
+            </a>
           {% else %}
-            <form method="post" action="{{ url_for('student.finish_test', test_id=test.id) }}" style="display:inline;">
-              <button class="btn btn-accent" type="submit">Finish</button>
+            <form method="post" action="{{ url_for('student.finish_test', test_id=test.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit"
+                      class="px-4 py-2 rounded-lg bg-academic-maroon text-white text-sm hover:bg-academic-navy transition">
+                Finish
+              </button>
             </form>
           {% endif %}
         {% endif %}
@@ -81,96 +115,83 @@
     </div>
 
     {% if test.mode.value == 'display' %}
-      <p style="color:var(--muted); margin-top:.5rem;">Display mode: options are disabled. The test advances as per your timer settings.</p>
+      <p class="text-sm text-gray-500 mt-3">
+        Display mode: options are disabled. The test advances as per your timer settings.
+      </p>
     {% endif %}
+
   </div>
 </div>
 
-<!-- Timer config for timer.js -->
+<!-- Timer config -->
 <script> window.TEST_TIMER_CONFIG = {{ timer_config | tojson }}; </script>
 
-<!-- Hardened Save/Skip handlers -->
+<!-- Save/Skip handlers -->
 <script>
 (function () {
   const cfg = window.TEST_TIMER_CONFIG || {};
-  // ----- Skip (don’t save) -----
-  const skipNext = document.getElementById('skip-next-btn');
-  const skipFinish = document.getElementById('skip-finish-btn');
+  const csrf = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
 
+  // ----- Skip buttons -----
   function navigate(url){
     if (!url) return;
-    // Tell timer not to auto-advance during manual nav
-    window.__saving_answer__ = true;  // reuse the same flag to pause timer nav
+    window.__saving_answer__ = true;
     window.location.assign(url);
   }
-  if (skipNext){
-    skipNext.addEventListener('click', (e)=>{
-      e.preventDefault();
-      navigate(skipNext.getAttribute('data-next'));
-    });
-  }
-  if (skipFinish){
-    skipFinish.addEventListener('click', (e)=>{
-      e.preventDefault();
-      navigate(skipFinish.getAttribute('data-finish'));
-    });
-  }
+  document.getElementById('skip-next-btn')?.addEventListener('click', e => {
+    e.preventDefault(); navigate(e.target.dataset.next);
+  });
+  document.getElementById('skip-finish-btn')?.addEventListener('click', e => {
+    e.preventDefault(); navigate(e.target.dataset.finish);
+  });
 
-  // ----- Save & Next (hardened) -----
+  // ----- Save button -----
   const btn = document.getElementById('save-next-btn');
   if (!btn) return;
-
   const radios = document.querySelectorAll('input[name="selected_option"]');
   const currentVal = () => { for (const r of radios) if (r.checked) return r.value; return null; };
 
   let inFlight = false;
-
-  btn.addEventListener('click', async (e) => {
+  btn.addEventListener('click', async e => {
     e.preventDefault();
     if (inFlight) return;
-
     const val = currentVal();
     if (!val) { alert("Please select an option."); return; }
 
     inFlight = true;
     btn.disabled = true;
-    const originalText = btn.textContent;
+    const orig = btn.textContent;
     btn.textContent = "Saving...";
-    window.__saving_answer__ = true; // prevent timer auto-advance race
+    window.__saving_answer__ = true;
 
     try {
       const res = await fetch(cfg.submit_api, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question_id: {{ q.id }},
-          selected_option: val,
-          current_question_seq: {{ n }}
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrf   // ✅ send CSRF header
+        },
+        body: JSON.stringify({ 
+          question_id: {{ q.id }}, 
+          selected_option: val, 
+          current_question_seq: {{ n }} 
         })
       });
 
       if (!res.ok) {
         let msg = res.statusText || "Save failed";
-        try {
-          const data = await res.json();
-          if (data && data.error) msg = data.error;
-        } catch(_) {
-          try { const txt = await res.text(); if (txt) msg = txt; } catch(__) {}
-        }
-        alert(msg);
-        return;
+        try { const d = await res.json(); if (d.error) msg = d.error; } catch(_) {}
+        alert(msg); return;
       }
-
       if (btn.dataset.finish === "1" && cfg.finish_url) window.location = cfg.finish_url;
       else if (cfg.next_url) window.location = cfg.next_url;
 
-    } catch (err) {
-      alert("Could not save your answer. Please check your connection and try again.");
+    } catch {
+      alert("Could not save your answer. Please check your connection.");
     } finally {
-      // If we didn't navigate due to error, restore the UI.
       inFlight = false;
       window.__saving_answer__ = false;
-      try { btn.disabled = false; btn.textContent = originalText; } catch(_) {}
+      btn.disabled = false; btn.textContent = orig;
     }
   });
 })();
