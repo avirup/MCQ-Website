@@ -46,10 +46,11 @@ Built with **Flask**, **SQLAlchemy**, **MariaDB**, **WTForms**, and styled with 
 ## 📦 Setup Instructions
 
 1. **Clone the repository**
+   
    ```bash
    git clone <your-repo-url>
    cd MCQ-Website/src
-````
+   ````
 
 2. **Create a virtual environment**
 
@@ -149,15 +150,4 @@ src/
 * Bulk export format matches bulk upload format → exported zip can be directly re-imported.
 
 ---
-
-## 📜 License
-
-MIT License (or choose your own)
-
-```
-
----
-
-👉 Do you also want me to add **Docker support instructions** (so you can spin up MariaDB + your Flask app with one `docker-compose up`)? That way, setup is easier across machines.
-```
 
