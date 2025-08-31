@@ -81,7 +81,7 @@ def _save_image(file_storage, subject_id: int) -> str:
     file_storage.save(full_path)
 
     # Return path relative to UPLOAD_DIR root for easier moves later
-    rel_path = str(Path(str(subject_id)) / unique)
+    rel_path = str(Path("questions") / str(subject_id) / unique)
     rel_path = rel_path.replace("\\", "/")
     return rel_path
 

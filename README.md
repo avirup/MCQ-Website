@@ -88,6 +88,8 @@ Built with **Flask**, **SQLAlchemy**, **MariaDB**, **WTForms**, and styled with 
 6. **Run database migrations**
 
    ```bash
+   flask db init
+   flask db migrate
    flask db upgrade
    ```
 
@@ -98,6 +100,12 @@ Built with **Flask**, **SQLAlchemy**, **MariaDB**, **WTForms**, and styled with 
    ```
 
 8. Visit: [http://localhost:5000](http://localhost:5000)
+
+9. **Create Admin Password**
+
+   ```bash
+   flask run
+   ```
 
 ---
 
