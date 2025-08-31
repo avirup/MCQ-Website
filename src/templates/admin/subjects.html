@@ -28,15 +28,11 @@
                      class="px-3 py-1.5 rounded-lg border border-academic-navy text-academic-navy text-sm hover:bg-academic-navy hover:text-white transition">
                     Edit
                   </a>
-                  <form method="post"
-                        action="{{ url_for('admin.subjects_delete', subject_id=s.id) }}"
-                        onsubmit="return confirm('Deleting this subject will delete all questions associated with this suject. All records of tests for this subject will also be deleted. Delete this subject?');">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit"
-                            class="px-3 py-1.5 rounded-lg bg-red-600 text-white text-sm hover:bg-red-700 transition">
-                      Delete
-                    </button>
-                  </form>
+                  <button type="button"
+                          class="px-3 py-1.5 rounded-lg bg-red-600 text-white text-sm hover:bg-red-700 transition"
+                          onclick="confirmDelete({{ s.id }}, '{{ s.name }}')">
+                    Delete
+                  </button>
                 </div>
               </td>
             </tr>
@@ -103,5 +99,43 @@
   </section>
 
 </div>
+
+<!-- Modal for delete confirmation -->
+<div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+  <div class="bg-white rounded-lg shadow-lg p-6 max-w-sm w-full">
+    <h3 class="text-lg font-semibold text-red-600 mb-2">Delete Subject</h3>
+    <p id="deleteMessage" class="text-sm text-gray-700 mb-4"></p>
+    <form id="deleteForm" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="flex justify-end gap-2">
+        <button type="button" onclick="closeModal()"
+                class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition">
+          Cancel
+        </button>
+        <button type="submit"
+                class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 transition">
+          Delete
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function confirmDelete(subjectId, subjectName) {
+    const modal = document.getElementById("deleteModal");
+    const message = document.getElementById("deleteMessage");
+    const form = document.getElementById("deleteForm");
+
+    message.textContent = `Are you sure you want to delete the subject "${subjectName}"? This will delete all questions and related test records.`;
+    form.action = `/admin/subjects/${subjectId}/delete`;
+
+    modal.classList.remove("hidden");
+  }
+
+  function closeModal() {
+    document.getElementById("deleteModal").classList.add("hidden");
+  }
+</script>
 
 {% endblock %}

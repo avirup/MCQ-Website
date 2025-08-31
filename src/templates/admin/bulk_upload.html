@@ -29,9 +29,12 @@
     Images are saved with unique names to avoid collisions.
   </p>
 
-  <pre class="bg-gray-50 border border-gray-200 rounded-lg text-sm p-3 overflow-auto">
+  <div>
+    <p class="text-xs font-medium text-gray-500 mb-1">Expected CSV columns:</p>
+    <pre class="bg-gray-50 border border-gray-200 rounded-lg text-xs p-3 overflow-auto">
 subject, question_text, question_image, option_a, option_a_image, option_b, option_b_image, option_c, option_c_image, option_d, option_d_image, correct_option
-  </pre>
+    </pre>
+  </div>
 
   <form method="post" enctype="multipart/form-data" class="space-y-6">
     {{ form.csrf_token }}
@@ -70,7 +73,7 @@ subject, question_text, question_image, option_a, option_a_image, option_b, opti
 <!-- Summary -->
 {% if summary %}
 <section class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mt-6">
-  <h3 class="text-md font-semibold text-academic-navy border-b border-gray-200 pb-1">Summary</h3>
+  <h3 class="text-md font-semibold text-academic-navy border-b border-gray-200 pb-1 mb-3">Summary</h3>
   <div class="flex flex-wrap gap-6 mt-3 text-sm">
     <div><strong>Created:</strong> {{ summary.created }}</div>
     <div><strong>Failed:</strong> {{ summary.failed }}</div>
@@ -84,7 +87,7 @@ subject, question_text, question_image, option_a, option_a_image, option_b, opti
 <!-- Errors -->
 {% if errors and errors|length %}
 <section class="bg-white border border-gray-200 rounded-xl shadow-sm p-6 mt-6">
-  <h3 class="text-md font-semibold text-red-700 border-b border-gray-200 pb-1">Errors</h3>
+  <h3 class="text-md font-semibold text-red-700 border-b border-gray-200 pb-1 mb-3">Errors</h3>
   <ol class="list-decimal list-inside mt-3 space-y-1 text-sm text-gray-700">
     {% for e in errors %}
       <li>{{ e }}</li>

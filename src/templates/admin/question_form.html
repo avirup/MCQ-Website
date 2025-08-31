@@ -24,7 +24,7 @@
       <label for="{{ form.question_text.id }}" class="block text-sm font-medium text-gray-700">
         {{ form.question_text.label.text }}
       </label>
-      <p class="text-xs text-gray-500 mt-1">Supports LaTeX and images.</p>
+      <p class="text-xs text-gray-500 mt-1">Enter text OR upload an image (at least one required). Supports LaTeX.</p>
       {{ form.question_text(class_="w-full rounded-lg border border-gray-300 px-3 py-2 mt-1 text-sm min-h-[140px] focus:ring-academic-navy focus:border-academic-navy") }}
       {% for e in form.question_text.errors %}
         <p class="text-red-600 text-sm mt-1">{{ e }}</p>
@@ -52,53 +52,31 @@
     <h3 class="text-md font-semibold text-academic-navy border-b border-gray-200 pb-1 mb-3">Options</h3>
     <div class="grid grid-cols-1 gap-4">
 
-      <!-- Option A -->
+      {% for code, text_field, img_field, img_attr in [
+        ('A', form.option_a, form.option_a_image, q.option_a_image if edit_mode else None),
+        ('B', form.option_b, form.option_b_image, q.option_b_image if edit_mode else None),
+        ('C', form.option_c, form.option_c_image, q.option_c_image if edit_mode else None),
+        ('D', form.option_d, form.option_d_image, q.option_d_image if edit_mode else None),
+      ] %}
       <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
-        <label for="{{ form.option_a.id }}" class="block text-sm font-medium text-gray-700">Option A</label>
-        {{ form.option_a(class_="w-full rounded-lg border border-gray-300 px-3 py-2 mt-1 text-sm min-h-[90px] focus:ring-academic-navy focus:border-academic-navy") }}
-        {{ form.option_a_image(class_="mt-2 block text-sm") }}
-        {% if edit_mode and q.option_a_image %}
+        <label for="{{ text_field.id }}" class="block text-sm font-medium text-gray-700">Option {{ code }}</label>
+        <p class="text-xs text-gray-500">Enter text OR upload an image (at least one required).</p>
+        {{ text_field(class_="w-full rounded-lg border border-gray-300 px-3 py-2 mt-1 text-sm min-h-[90px] focus:ring-academic-navy focus:border-academic-navy") }}
+        {% for e in text_field.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ e }}</p>
+        {% endfor %}
+        
+        {{ img_field(class_="mt-2 block text-sm") }}
+        {% if edit_mode and img_attr %}
           <p class="text-xs text-gray-500 mt-2">
-            Current: <a href="{{ url_for('uploads.serve_upload', relpath=q.option_a_image) }}" target="_blank" class="text-academic-navy underline">view image</a>
+            Current: <a href="{{ url_for('uploads.serve_upload', relpath=img_attr) }}" target="_blank" class="text-academic-navy underline">view image</a>
           </p>
         {% endif %}
+        {% for e in img_field.errors %}
+          <p class="text-red-600 text-sm mt-1">{{ e }}</p>
+        {% endfor %}
       </div>
-
-      <!-- Option B -->
-      <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
-        <label for="{{ form.option_b.id }}" class="block text-sm font-medium text-gray-700">Option B</label>
-        {{ form.option_b(class_="w-full rounded-lg border border-gray-300 px-3 py-2 mt-1 text-sm min-h-[90px] focus:ring-academic-navy focus:border-academic-navy") }}
-        {{ form.option_b_image(class_="mt-2 block text-sm") }}
-        {% if edit_mode and q.option_b_image %}
-          <p class="text-xs text-gray-500 mt-2">
-            Current: <a href="{{ url_for('uploads.serve_upload', relpath=q.option_b_image) }}" target="_blank" class="text-academic-navy underline">view image</a>
-          </p>
-        {% endif %}
-      </div>
-
-      <!-- Option C -->
-      <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
-        <label for="{{ form.option_c.id }}" class="block text-sm font-medium text-gray-700">Option C</label>
-        {{ form.option_c(class_="w-full rounded-lg border border-gray-300 px-3 py-2 mt-1 text-sm min-h-[90px] focus:ring-academic-navy focus:border-academic-navy") }}
-        {{ form.option_c_image(class_="mt-2 block text-sm") }}
-        {% if edit_mode and q.option_c_image %}
-          <p class="text-xs text-gray-500 mt-2">
-            Current: <a href="{{ url_for('uploads.serve_upload', relpath=q.option_c_image) }}" target="_blank" class="text-academic-navy underline">view image</a>
-          </p>
-        {% endif %}
-      </div>
-
-      <!-- Option D -->
-      <div class="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
-        <label for="{{ form.option_d.id }}" class="block text-sm font-medium text-gray-700">Option D</label>
-        {{ form.option_d(class_="w-full rounded-lg border border-gray-300 px-3 py-2 mt-1 text-sm min-h-[90px] focus:ring-academic-navy focus:border-academic-navy") }}
-        {{ form.option_d_image(class_="mt-2 block text-sm") }}
-        {% if edit_mode and q.option_d_image %}
-          <p class="text-xs text-gray-500 mt-2">
-            Current: <a href="{{ url_for('uploads.serve_upload', relpath=q.option_d_image) }}" target="_blank" class="text-academic-navy underline">view image</a>
-          </p>
-        {% endif %}
-      </div>
+      {% endfor %}
 
     </div>
   </section>
@@ -110,6 +88,9 @@
         {{ form.correct_option.label.text }}
       </label>
       {{ form.correct_option(class_="w-full rounded-lg border border-gray-300 px-3 py-2 mt-1 text-sm focus:ring-academic-navy focus:border-academic-navy") }}
+      {% for e in form.correct_option.errors %}
+        <p class="text-red-600 text-sm mt-1">{{ e }}</p>
+      {% endfor %}
     </div>
     {% if form.difficulty is defined %}
     <div>
@@ -117,6 +98,9 @@
         {{ form.difficulty.label.text }}
       </label>
       {{ form.difficulty(class_="w-full rounded-lg border border-gray-300 px-3 py-2 mt-1 text-sm focus:ring-academic-navy focus:border-academic-navy") }}
+      {% for e in form.difficulty.errors %}
+        <p class="text-red-600 text-sm mt-1">{{ e }}</p>
+      {% endfor %}
     </div>
     {% endif %}
   </section>

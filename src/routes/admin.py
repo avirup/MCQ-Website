@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 from pathlib import Path
-import os, uuid
-from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, Response, make_response
+import os, uuid, shutil
+from flask import Blueprint, render_template, request, redirect, url_for, flash, current_app, Response, make_response, send_file
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
 from sqlalchemy import func, case
@@ -301,14 +301,19 @@ def subjects_delete(subject_id: int):
 @admin_required
 def questions():
     subject_id = request.args.get("subject_id", type=int)
+    page = request.args.get("page", 1, type=int)
+    per_page = 20  # adjust as needed
+
     q = Question.query
     if subject_id:
         q = q.filter(Question.subject_id == subject_id)
 
-    questions = q.order_by(Question.id.desc()).limit(200).all()  # cap to 200 for now
+    pagination = q.order_by(Question.id.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    questions = pagination.items
     subjects = Subject.query.order_by(Subject.name.asc()).all()
+
     delete_form = DeleteForm()
-    return render_template("admin/questions_list.html", questions=questions, subjects=subjects, selected_subject_id=subject_id, delete_form=delete_form)
+    return render_template("admin/questions_list.html", questions=questions, subjects=subjects, selected_subject_id=subject_id, delete_form=delete_form, pagination=pagination)
 
 # -----------------------
 # Questions: Create
@@ -710,3 +715,72 @@ def download_template():
     filename = "questions_template.csv" if not include_sample else "questions_template_with_sample.csv"
     resp.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
     return resp
+
+#-------Bulk Export-------#
+
+@admin_bp.route("/bulk-export", methods=["GET", "POST"])
+@admin_required
+def bulk_export():
+    # Collect subject IDs from query string (for inline export) or form (bulk_export.html)
+    selected_ids = request.args.getlist("subject_ids") or request.form.getlist("subject_ids")
+
+    if not selected_ids:
+        if request.method == "POST":
+            flash("Please select at least one subject.", "error")
+        return render_template("admin/bulk_export.html", subjects=Subject.query.order_by(Subject.name.asc()).all())
+
+    # Query questions for selected subjects
+    questions = Question.query.filter(Question.subject_id.in_(selected_ids)).all()
+
+    if not questions:
+        flash("No questions found for selected subjects.", "error")
+        return redirect(url_for("admin.questions"))
+
+    # Create CSV + images in memory
+    headers = [
+        "subject", "question_text", "question_image",
+        "option_a", "option_a_image",
+        "option_b", "option_b_image",
+        "option_c", "option_c_image",
+        "option_d", "option_d_image",
+        "correct_option",
+    ]
+
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        # Write CSV
+        csv_buf = io.StringIO()
+        writer = csv.DictWriter(csv_buf, fieldnames=headers)
+        writer.writeheader()
+
+        images_dir = Path(current_app.config["UPLOAD_DIR"])
+
+        def add_image(relpath):
+            if not relpath:
+                return ""
+            src = images_dir / relpath
+            if src.exists():
+                zf.write(src, f"images/{Path(relpath).name}")
+                return Path(relpath).name
+            return ""
+
+        for q in questions:
+            writer.writerow({
+                "subject": q.subject.name,
+                "question_text": q.question_text or "",
+                "question_image": add_image(q.question_image),
+                "option_a": q.option_a or "",
+                "option_a_image": add_image(q.option_a_image),
+                "option_b": q.option_b or "",
+                "option_b_image": add_image(q.option_b_image),
+                "option_c": q.option_c or "",
+                "option_c_image": add_image(q.option_c_image),
+                "option_d": q.option_d or "",
+                "option_d_image": add_image(q.option_d_image),
+                "correct_option": q.correct_option,
+            })
+
+        zf.writestr("questions.csv", csv_buf.getvalue())
+
+    buf.seek(0)
+    return send_file(buf, as_attachment=True, download_name="questions_export.zip", mimetype="application/zip")

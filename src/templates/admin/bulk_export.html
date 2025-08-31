@@ -1,0 +1,28 @@
+{% extends "admin/base_admin.html" %}
+{% block admin_content %}
+<h2 class="text-lg font-semibold text-academic-navy border-b-4 border-academic-navy pb-1">Bulk Export</h2>
+
+<form method="post" action="{{ url_for('admin.bulk_export') }}" class="space-y-4 mt-4">
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <p class="text-sm text-gray-600">Select one or more subjects to export:</p>
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+    {% for s in subjects %}
+      <label class="flex items-center gap-2 text-sm">
+        <input type="checkbox" name="subject_ids" value="{{ s.id }}" class="rounded">
+        {{ s.name }}
+      </label>
+    {% endfor %}
+  </div>
+
+  <div class="flex gap-2 mt-4">
+    <button type="submit"
+            class="px-4 py-2 rounded-lg bg-academic-navy text-white hover:bg-academic-maroon transition">
+      Export Selected
+    </button>
+    <a href="{{ url_for('admin.questions') }}"
+       class="px-4 py-2 rounded-lg border border-academic-navy text-academic-navy hover:bg-academic-navy hover:text-white transition">
+      Cancel
+    </a>
+  </div>
+</form>
+{% endblock %}

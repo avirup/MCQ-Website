@@ -2,37 +2,68 @@
 {% block admin_content %}
 
 <!-- Toolbar -->
-<div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-4">
+<div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 mb-6">
 
-  <!-- Left: Title + New Question -->
+  <!-- Left: Title + New -->
   <div class="flex items-center gap-3 flex-wrap">
-    <h2 class="text-lg font-semibold text-academic-navy border-b-4 border-academic-navy pb-1">
-      Questions
-    </h2>
+    <h2 class="text-lg font-semibold text-academic-navy border-b-4 border-academic-navy pb-1">Questions</h2>
     <a href="{{ url_for('admin.questions_new') }}"
        class="px-3 py-1.5 rounded-lg bg-academic-navy text-white text-sm hover:bg-academic-maroon transition">
       + New Question
     </a>
   </div>
 
-  <!-- Right: Filter -->
-  <form method="get" action="{{ url_for('admin.questions') }}" class="flex items-center gap-2 flex-wrap">
-    <label for="subject_id" class="text-sm text-gray-600">Subject</label>
-    <select id="subject_id" name="subject_id"
-            class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:ring-academic-navy focus:border-academic-navy"
-            onchange="this.form.submit()">
-      <option value="">All</option>
-      {% for s in subjects %}
-        <option value="{{ s.id }}" {% if selected_subject_id==s.id %}selected{% endif %}>{{ s.name }}</option>
-      {% endfor %}
-    </select>
-    {% if request.args %}
-      <a href="{{ url_for('admin.questions') }}"
-         class="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 text-sm hover:bg-gray-100 transition">
-        Clear
-      </a>
-    {% endif %}
-  </form>
+  <!-- Right: Filters + Export -->
+  <div class="flex items-center gap-3 flex-wrap">
+
+    <!-- Subject Filter -->
+    <form method="get" action="{{ url_for('admin.questions') }}" class="flex items-center gap-2 flex-wrap">
+      <label for="subject_id" class="text-sm text-gray-600">Subject</label>
+      <select id="subject_id" name="subject_id"
+              class="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:ring-academic-navy focus:border-academic-navy"
+              onchange="this.form.submit()">
+        <option value="">All</option>
+        {% for s in subjects %}
+          <option value="{{ s.id }}" {% if selected_subject_id==s.id %}selected{% endif %}>{{ s.name }}</option>
+        {% endfor %}
+      </select>
+      {% if request.args %}
+        <a href="{{ url_for('admin.questions') }}"
+           class="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 text-sm hover:bg-gray-100 transition">
+          Clear
+        </a>
+      {% endif %}
+    </form>
+
+    <!-- Export Dropdown -->
+    <div class="relative">
+      <button type="button"
+              class="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 text-sm hover:bg-gray-100 transition"
+              onclick="toggleExportDropdown()">
+        Export ▼
+      </button>
+
+      <div id="exportDropdown"
+           class="hidden absolute right-0 mt-2 w-56 bg-white border border-gray-200 rounded-lg shadow-lg p-3 z-10">
+        <form method="post" action="{{ url_for('admin.bulk_export') }}" id="exportForm">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <p class="text-xs text-gray-600 mb-2">Select subjects to export:</p>
+          <div class="max-h-40 overflow-y-auto space-y-1">
+            {% for s in subjects %}
+              <label class="flex items-center gap-2 text-sm">
+                <input type="checkbox" name="subject_ids" value="{{ s.id }}" class="rounded">
+                {{ s.name }}
+              </label>
+            {% endfor %}
+          </div>
+          <button type="submit"
+                  class="mt-3 w-full px-3 py-1.5 rounded-lg bg-academic-navy text-white text-sm hover:bg-academic-maroon transition">
+            Download Zip
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Questions Table -->
@@ -64,7 +95,7 @@
               </a>
               <form method="post"
                     action="{{ url_for('admin.questions_delete', qid=q.id) }}"
-                    onsubmit="return confirm('Deleting the question will cause the question to be deleted from all previous tests. Delete this question?');">
+                    class="delete-form">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <button type="submit"
                         class="px-3 py-1.5 rounded-lg bg-red-600 text-white text-sm hover:bg-red-700 transition">
@@ -82,5 +113,98 @@
     </tbody>
   </table>
 </section>
+
+<!-- Pagination -->
+{% if pagination.pages > 1 %}
+<div class="flex justify-center mt-4 gap-2">
+  {% if pagination.has_prev %}
+    <a href="{{ url_for('admin.questions', page=pagination.prev_num, subject_id=selected_subject_id) }}"
+       class="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 text-sm hover:bg-gray-100 transition">
+      &larr; Prev
+    </a>
+  {% endif %}
+  {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+    {% if p %}
+      {% if p == pagination.page %}
+        <span class="px-3 py-1.5 rounded-lg bg-academic-navy text-white text-sm">{{ p }}</span>
+      {% else %}
+        <a href="{{ url_for('admin.questions', page=p, subject_id=selected_subject_id) }}"
+           class="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 text-sm hover:bg-gray-100 transition">
+          {{ p }}
+        </a>
+      {% endif %}
+    {% else %}
+      <span class="px-3 py-1.5 text-gray-400">…</span>
+    {% endif %}
+  {% endfor %}
+  {% if pagination.has_next %}
+    <a href="{{ url_for('admin.questions', page=pagination.next_num, subject_id=selected_subject_id) }}"
+       class="px-3 py-1.5 rounded-lg border border-gray-300 text-gray-700 text-sm hover:bg-gray-100 transition">
+      Next &rarr;
+    </a>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- Confirmation Modal -->
+<div id="confirmModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+  <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
+    <h3 class="text-lg font-semibold text-gray-800 mb-2">Confirm Delete</h3>
+    <p class="text-sm text-gray-600 mb-4">Deleting this question will also remove it from all previous tests. Are you sure?</p>
+    <div class="flex justify-end gap-2">
+      <button type="button" onclick="closeModal()"
+              class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 text-sm">
+        Cancel
+      </button>
+      <button id="confirmDeleteBtn" type="button"
+              class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 text-sm">
+        Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let formToSubmit = null;
+
+  // Intercept delete button
+  document.querySelectorAll(".delete-form").forEach(form => {
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+      formToSubmit = this;
+      document.getElementById("confirmModal").classList.remove("hidden");
+    });
+  });
+
+  function closeModal() {
+    document.getElementById("confirmModal").classList.add("hidden");
+    formToSubmit = null;
+  }
+
+  document.getElementById("confirmDeleteBtn").addEventListener("click", function() {
+    if (formToSubmit) formToSubmit.submit();
+    closeModal();
+  });
+
+  // Toggle export dropdown
+  function toggleExportDropdown() {
+    const dropdown = document.getElementById("exportDropdown");
+    dropdown.classList.toggle("hidden");
+  }
+
+  // Close export dropdown after submit
+  document.getElementById("exportForm").addEventListener("submit", function() {
+    document.getElementById("exportDropdown").classList.add("hidden");
+  });
+
+  // Require at least one subject for export
+  document.getElementById("exportForm").addEventListener("submit", function(e) {
+    const checked = this.querySelectorAll('input[name="subject_ids"]:checked');
+    if (checked.length === 0) {
+      e.preventDefault();
+      showToast("Please select at least one subject to export.", "error");
+    }
+  });
+</script>
 
 {% endblock %}

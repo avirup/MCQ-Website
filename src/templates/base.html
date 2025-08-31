@@ -31,7 +31,47 @@
 </head>
 <body class="bg-gray-50 text-gray-900">
   <main class="max-w-6xl mx-auto p-4">
+    <!-- 🔔 Toast container (global, fixed position) -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
     {% block content %}{% endblock %}
   </main>
+  <!-- 🔔 Toast function -->
+  <script>
+    function showToast(message, type = "info") {
+      const container = document.getElementById("toast-container");
+
+      // Create toast element
+      const toast = document.createElement("div");
+      toast.className = `px-4 py-2 rounded-lg shadow text-white text-sm transition
+        ${type === "success" ? "bg-green-600" : ""}
+        ${type === "error" ? "bg-red-600" : ""}
+        ${type === "info" ? "bg-blue-600" : ""}
+        ${type === "warn" ? "bg-yellow-600 text-black" : ""}`;
+      toast.textContent = message;
+
+      container.appendChild(toast);
+
+      // Animate and remove after 3s
+      setTimeout(() => {
+        toast.style.opacity = "0";
+        toast.style.transform = "translateX(100%)";
+      }, 2500);
+      setTimeout(() => toast.remove(), 3500);
+    }
+  </script>
+
+  <!-- Inject Flask flash() messages as toasts -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        {% for category, message in messages %}
+          showToast("{{ message|escape }}", "{{ category }}");
+        {% endfor %}
+      });
+    </script>
+    {% endif %}
+  {% endwith %}
+
 </body>
 </html>

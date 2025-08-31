@@ -67,14 +67,18 @@
         {% for q in recent_questions %}
           <tr class="hover:bg-gray-50">
             <td class="px-4 py-2">{{ q.id }}</td>
-            <td class="px-4 py-2">{{ q.subject.name }}</td>
-            <td class="px-4 py-2 truncate max-w-xs">{{ (q.question_text|striptags)[:80] }}{% if (q.question_text|striptags)|length > 80 %}…{% endif %}</td>
+            <td class="px-4 py-2">{{ q.subject.name if q.subject else "—" }}</td>
+            <td class="px-4 py-2 truncate max-w-xs">
+              {{ (q.question_text|striptags)|truncate(80, True, "…") }}
+            </td>
             <td class="px-4 py-2">
               <span class="px-2 py-0.5 rounded-md border border-gray-300 text-xs">
-                {{ (q.difficulty.value if q.difficulty is not none else 'unrated')|capitalize }}
+                {{ (q.difficulty.value if q.difficulty else "unrated")|capitalize }}
               </span>
             </td>
-            <td class="px-4 py-2 text-gray-500">{{ q.updated_at.strftime("%Y-%m-%d") if q.updated_at else "" }}</td>
+            <td class="px-4 py-2 text-gray-500">
+              {{ q.updated_at.strftime("%Y-%m-%d") if q.updated_at else "" }}
+            </td>
             <td class="px-4 py-2 text-right">
               <a href="{{ url_for('admin.questions_edit', qid=q.id) }}"
                  class="px-3 py-1.5 rounded-lg border border-academic-navy text-academic-navy text-sm hover:bg-academic-navy hover:text-white transition">
@@ -84,7 +88,9 @@
           </tr>
         {% else %}
           <tr>
-            <td colspan="6" class="px-4 py-3 text-gray-500 text-sm">No recent questions.</td>
+            <td colspan="6" class="px-4 py-3 text-gray-500 text-sm text-center">
+              No recent questions.
+            </td>
           </tr>
         {% endfor %}
       </tbody>

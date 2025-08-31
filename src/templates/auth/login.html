@@ -6,21 +6,6 @@
     Admin Login
   </h1>
 
-  {# Flash messages (hide only "Logged in successfully.") #}
-  {% with msgs = get_flashed_messages(with_categories=true) %}
-    {% if msgs %}
-      <div class="bg-red-50 border border-red-200 text-red-800 rounded-md p-3 mb-4 text-sm">
-        <ul class="list-disc list-inside space-y-1">
-          {% for category, msg in msgs %}
-            {% if 'Logged in successfully.' not in msg|lower %}
-              <li><strong>{{ category|capitalize }}:</strong> {{ msg }}</li>
-            {% endif %}
-          {% endfor %}
-        </ul>
-      </div>
-    {% endif %}
-  {% endwith %}
-
   <form method="post" action="{{ url_for('auth.login', next=next) }}" class="space-y-4">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="next" value="{{ next or '' }}">

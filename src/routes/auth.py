@@ -107,6 +107,7 @@ def login():
 @auth_bp.route("/admin/logout", methods=["POST"])
 def logout():
     if session.get("is_admin"):
+        session.pop('_flashes', None)  # clear all flash messages
         session.pop("is_admin", None)
         flash("Logged out.", "success")
     return redirect(url_for("auth.login"))
