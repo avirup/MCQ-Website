@@ -7,10 +7,6 @@ Built with **Flask**, **SQLAlchemy**, **MariaDB**, **WTForms**, and styled with 
 ---
 
 ## 🚀 Features
-...
-
-
-## 🚀 Features
 
 - **Admin**
   - Manage subjects (create, edit, delete).
