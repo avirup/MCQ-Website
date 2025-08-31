@@ -49,6 +49,7 @@ coverage.xml
 .pytest_cache/
 cover/
 sanitytest.py
+sample_data/
 
 # Translations
 *.mo
