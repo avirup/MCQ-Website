@@ -1,48 +1,55 @@
-# MCQ Test Platform (Starter Kit)
+# 📝 MCQ Test Platform
 
-This is a starter scaffold for a Flask + MariaDB MCQ Test Platform.
+A web-based platform for creating, managing, and attempting multiple-choice questions (MCQs).  
+Built with **Flask**, **SQLAlchemy**, **MariaDB**, **WTForms**, and styled with **Tailwind CSS**.  
+💡 **Note:** This entire application was created collaboratively inside **ChatGPT-5** conversations — from design, models, and routes, to templates, styling, and advanced features.  
 
-## 1) Setup (Windows PowerShell)
+---
 
-```powershell
-cd mcq_platform
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-```
+## 🚀 Features
+...
 
-## 2) Configure Environment
 
-Edit `.env` with your DB connection and secrets.
+## 🚀 Features
 
-Optional: Create `.flaskenv` for dev convenience:
+- **Admin**
+  - Manage subjects (create, edit, delete).
+  - Manage questions with text and/or images.
+  - Bulk upload questions via CSV + ZIP of images.
+  - Bulk export questions + images (re-importable format).
+  - Pagination in questions list for large datasets.
+  - Inline subject filter & export dropdown with checkboxes.
+  - Styled toast notifications (replaces default alerts).
+  - Secure authentication for admin with CSRF protection.
 
-```ini
-FLASK_APP=manage.py
-FLASK_ENV=development
-```
+- **Students**
+  - Start tests in **display** or **interactive** mode.
+  - Configure difficulty, number of questions, and timer mode.
+  - Timer per-question or whole test.
+  - Inline image display for questions/options.
+  - Review answers and see detailed summaries.
+  - Public sharing links for summaries and reviews.
 
-## 3) Initialize Database (after you add models later)
-```powershell
-flask db init
-flask db migrate -m "init"
-flask db upgrade
-```
+- **General**
+  - Responsive design with Tailwind CSS.
+  - MathJax support for LaTeX rendering.
+  - Cascading deletes (questions & subjects clean up images).
+  - Custom 404 error page with cartoon & animation.
 
-## 4) Run the App
-```powershell
-flask --app manage.py run
-```
+---
 
-## 5) Sample Data
-The `sample_data/` folder includes small CSVs you can use later for bulk upload features.
+## 🛠️ Tech Stack
 
-## 6) Structure
-- `app.py` – app factory, registers blueprints
-- `routes/` – blueprints for auth, admin, student, api
-- `services/` – business logic (to implement)
-- `templates/` – Jinja templates
-- `static/` – CSS/JS placeholders
-- `uploads/` – image uploads
-- `migrations/` – alembic (created by Flask-Migrate)
-- `tests/` – pytest tests (basic example)
+- **Backend:** Python, Flask, SQLAlchemy, WTForms  
+- **Frontend:** Tailwind CSS, Vanilla JS, MathJax  
+- **Database:** **MariaDB** (tested with 10.x), but also works with MySQL  
+- **Other:** Alembic migrations, Pillow for image validation  
+
+---
+
+## 📦 Setup Instructions
+
+1. **Clone the repository**
+   ```bash
+   git clone <your-repo-url>
+   cd MCQ-Website/src
